@@ -8,6 +8,7 @@ import { iAuth } from './iAuth'
 import { iConf } from './iConf'
 import { mList } from './mList'
 import { _mClear, _mList } from './mData'
+import { pJump } from './pJump'
 import { pEdit } from './pEdit'
 import { pList } from './pList'
 import { tList } from './tList'
@@ -20,6 +21,7 @@ app.use(csrf());
 
 app.get('/:page{[0-9]+}?', tList);
 app.get('/t/:tid{[0-9]+}/:page{[0-9]+}?', pList);
+app.get('/p', pJump);
 
 app.put('/t/:tid{[-0-9]+}?', tPeak);
 app.get('/e/:eid{[-0-9]+}?', pEdit);

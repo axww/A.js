@@ -108,6 +108,19 @@ ${Header(z)}
     `: ''}
 </div>
 
+<script>
+window.addEventListener("load", function () {
+    const search = window.location.search;
+    if (search) {
+        const target = document.querySelector('#p'+search.substring(1));
+        if (target) {
+            target.style.scrollMarginTop = "80px"; // 设置滚动边距
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    }
+});
+</script>
+
 ${Footer(z)}
     `;
 }

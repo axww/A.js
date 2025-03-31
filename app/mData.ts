@@ -18,6 +18,7 @@ export async function _mList(a: Context) {
             post_uid: User.uid,
             post_name: User.name,
             post_pid: Post.pid,
+            post_tid: Post.tid,
             post_time: Post.time,
             post_content: Post.content,
         })

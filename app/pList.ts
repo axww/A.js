@@ -3,7 +3,6 @@ import { Props, DB, Post, Thread, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
 import { asc, eq, or, getTableColumns, and, ne } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
-import { raw } from "hono/html";
 import { PList } from "../bare/PList";
 
 export interface PListProps extends Props {

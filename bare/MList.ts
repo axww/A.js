@@ -26,12 +26,15 @@ async function mFetch() {
             document.getElementById('load').style.display = 'none';
         }
         data.forEach(function(row){
-            document.getElementById('list').innerHTML += '<div class="message" pid="'+row.post_pid+'">';
-            document.getElementById('list').innerHTML += '<i style="color:grey;font-size:10px;">'+row.quote_content+'</i><br />';
-            document.getElementById('list').innerHTML += '<a href="/p/'+row.post_pid+'" target="_blank">';
-            document.getElementById('list').innerHTML += '<b>'+row.post_name+'</b>: ';
-            document.getElementById('list').innerHTML += ''+row.post_content+'<br />';
-            document.getElementById('list').innerHTML += '</div><hr />'
+            let html = ''
+            html += '<div class="message" pid="'+row.post_pid+'">';
+            html += '<i style="color:grey;font-size:10px;">'+row.quote_content+'</i><br />';
+            html += '<a href="/p?tid='+row.post_tid+'&pid='+row.post_pid+'" target="_blank">';
+            html += '<b>'+row.post_name+'</b>: ';
+            html += row.post_content;
+            html += '</a>';
+            html += '</div><hr />'
+            document.getElementById('list').innerHTML += html
         });
     } catch (error) {
         console.error("获取数据失败:", error);
