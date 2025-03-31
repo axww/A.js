@@ -868,13 +868,6 @@ html {
   flex-grow: 1;
 }
 
-.card-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
 .card figure {
   display: flex;
   align-items: center;
@@ -2597,6 +2590,10 @@ html:has(.drawer-toggle:checked) {
   margin-top: 0.5rem;
 }
 
+.mt-4 {
+  margin-top: 1rem;
+}
+
 .mt-6 {
   margin-top: 1.5rem;
 }
@@ -2644,10 +2641,6 @@ html:has(.drawer-toggle:checked) {
   height: 1.25rem;
 }
 
-.h-6 {
-  height: 1.5rem;
-}
-
 .h-full {
   height: 100%;
 }
@@ -2670,10 +2663,6 @@ html:has(.drawer-toggle:checked) {
 
 .w-5 {
   width: 1.25rem;
-}
-
-.w-6 {
-  width: 1.5rem;
 }
 
 .w-80 {
