@@ -15,6 +15,43 @@ export function PList(z: PListProps) {
             }
             .content img {
                 padding: 4px 0;
+                cursor: pointer;
+                transition: opacity 0.2s ease;
+            }
+            .content img:hover {
+                opacity: 0.9;
+            }
+            .image-preview-modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.9);
+                transition: opacity 0.3s ease;
+            }
+            .image-preview-content {
+                margin: auto;
+                display: block;
+                max-width: 90%;
+                max-height: 90%;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            }
+            .image-preview-close {
+                position: absolute;
+                top: 15px;
+                right: 35px;
+                color: #f1f1f1;
+                font-size: 40px;
+                font-weight: bold;
+                cursor: pointer;
             }
         </style>
     `);
@@ -106,6 +143,25 @@ ${Header(z)}
             </div>
         </div>
     `: ''}
+    
+    ${z.i ? html`
+        <div class="card bg-base-100 shadow-sm mt-8">
+            <div class="card-body p-4">
+                <h3 class="text-lg font-semibold mb-2">快速回复</h3>
+                <div class="form-control">
+                    <textarea id="quickReplyContent" class="textarea textarea-bordered h-24" placeholder="输入简短回复内容..."></textarea>
+                </div>
+                <div class="flex justify-end mt-2">
+                    <button id="submitQuickReply" class="btn btn-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        发送
+                    </button>
+                </div>
+            </div>
+        </div>
+    ` : ''}
 </div>
 
 <script>
@@ -117,6 +173,90 @@ window.addEventListener("load", function () {
             target.style.scrollMarginTop = "80px"; // 设置滚动边距
             target.scrollIntoView({ behavior: "smooth", block: "start" });
         }
+    }
+
+    // 创建图片预览模态框
+    const modal = document.createElement('div');
+    modal.className = 'image-preview-modal';
+    const modalImg = document.createElement('img');
+    modalImg.className = 'image-preview-content';
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'image-preview-close';
+    closeBtn.innerHTML = '&times;';
+    modal.appendChild(modalImg);
+    modal.appendChild(closeBtn);
+    document.body.appendChild(modal);
+    
+    // 为所有内容中的图片添加点击事件
+    document.querySelectorAll('.content img').forEach(img => {
+        img.addEventListener('click', function() {
+            modal.style.display = 'block';
+            modalImg.src = this.src;
+        });
+    });
+    
+    // 点击关闭按钮或者模态框背景关闭预览
+    closeBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+        }
+    });
+    
+    // 快速回复功能
+    const quickReplyBtn = document.getElementById('submitQuickReply');
+    if (quickReplyBtn) {
+        quickReplyBtn.addEventListener('click', function() {
+            const content = document.getElementById('quickReplyContent').value.trim();
+            if (!content) {
+                alert('请输入回复内容');
+                return;
+            }
+            
+            // 显示加载状态
+            quickReplyBtn.classList.add('btn-disabled');
+            quickReplyBtn.innerHTML = '<span class="loading loading-spinner"></span> 发送中...';
+            
+            // 获取CSRF令牌
+            const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
+            const csrfToken = csrfMetaTag ? csrfMetaTag.getAttribute('content') : '';
+            
+            // 发送快速回复请求
+            fetch('/api/quick-reply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-Token': csrfToken || ''
+                },
+                body: JSON.stringify({
+                    tid: ${z.thread.tid},
+                    content: content
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 成功后刷新页面显示新回复
+                    window.location.reload();
+                } else {
+                    alert(data.message || '回复失败，请稍后再试');
+                    resetButtonState();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('回复失败，请稍后再试');
+                resetButtonState();
+            });
+            
+            // 重置按钮状态函数
+            function resetButtonState() {
+                quickReplyBtn.classList.remove('btn-disabled');
+                quickReplyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg> 发送';
+            }
+        });
     }
 });
 </script>

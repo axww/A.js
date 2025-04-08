@@ -3,7 +3,7 @@ import { DB, Message, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
 import { and, desc, eq, inArray, lt } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
-import { mClear } from "./mCore";
+import { mClear, mRead } from "./mCore";
 
 export async function _mList(a: Context) {
     const i = await Auth(a)
@@ -13,6 +13,7 @@ export async function _mList(a: Context) {
     const QuotePost = alias(Post, 'QuotePost')
     const data = await DB
         .select({
+            type: Message.type, // 添加消息类型字段，用于区分已读/未读
             quote_pid: QuotePost.pid,
             quote_content: QuotePost.content,
             post_uid: User.uid,
@@ -34,8 +35,8 @@ export async function _mList(a: Context) {
         .orderBy(desc(Message.pid))
         .limit(10)
     data.forEach(function (row) {
-        row.quote_content = HTMLText.all(row.quote_content, 100);
-        row.post_content = HTMLText.all(row.post_content, 200);
+        row.quote_content = HTMLText.all(row.quote_content, 300);
+        row.post_content = HTMLText.all(row.post_content, 300);
     })
     return a.json(data)
 }
@@ -45,4 +46,16 @@ export async function _mClear(a: Context) {
     if (!i) { return a.text('401', 401) }
     mClear(i.uid, 1);
     return a.json('ok')
+}
+
+// 标记单条消息为已读
+export async function _mRead(a: Context) {
+    const i = await Auth(a)
+    if (!i) { return a.text('401', 401) }
+    
+    const pid = parseInt(a.req.query('pid') ?? '0');
+    if (!pid) { return a.json({ success: false, message: '无效的消息ID' }) }
+    
+    await mRead(i.uid, 1, pid);
+    return a.json({ success: true });
 }
