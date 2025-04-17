@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { DB, Message, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
-import { and, desc, eq, inArray, lt } from 'drizzle-orm';
-import { alias } from "drizzle-orm/sqlite-core";
 import { mClear, mRead } from "./mCore";
+import { alias } from "drizzle-orm/sqlite-core";
+import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm';
 
 export async function _mList(a: Context) {
     const i = await Auth(a)
@@ -31,7 +31,7 @@ export async function _mList(a: Context) {
         ))
         .leftJoin(Post, eq(Post.pid, Message.pid))
         .leftJoin(User, eq(User.uid, Post.uid))
-        .leftJoin(QuotePost, eq(QuotePost.pid, Post.quote_pid))
+        .leftJoin(QuotePost, eq(QuotePost.pid, sql`CASE WHEN ${Post.quote_pid} = 0 THEN ${Post.tid} ELSE ${Post.quote_pid} END`))
         .orderBy(desc(Message.pid))
         .limit(10)
     data.forEach(function (row) {
@@ -52,10 +52,10 @@ export async function _mClear(a: Context) {
 export async function _mRead(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    
+
     const pid = parseInt(a.req.query('pid') ?? '0');
     if (!pid) { return a.json({ success: false, message: '无效的消息ID' }) }
-    
+
     await mRead(i.uid, 1, pid);
     return a.json({ success: true });
 }
