@@ -248,23 +248,27 @@ export async function pOmit(a: Context) {
 export async function pQuickReply(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.json({ success: false, message: '请先登录' }, 401) }
-    
+
     const time = Math.floor(Date.now() / 1000)
-    
+
     // 防止频繁发帖
-    if (time - lastPostTime(i.uid) < 60) { 
-        return a.json({ success: false, message: '发帖太快，请稍后再试' }, 403) 
+    if (time - lastPostTime(i.uid) < 60) {
+        return a.json({ success: false, message: '发帖太快，请稍后再试' }, 403)
     }
-    
+
     try {
         const body = await a.req.json()
+
         const tid = parseInt(body.tid?.toString() || '0')
-        const rawContent = body.content?.toString() || ''
-        
-        if (!tid || !rawContent.trim()) {
+        if (!tid) {
             return a.json({ success: false, message: '参数错误' }, 400)
         }
-        
+
+        const content = HTMLFilter(body.content?.toString().trim().replace(/\r?\n/g, '<br />') || '');
+        if (!content) {
+            return a.json({ success: false, message: '内容不合规' }, 406)
+        }
+
         // 获取主题帖子 (参考标准回复功能)
         const quote = (await DB
             .select()
@@ -274,17 +278,10 @@ export async function pQuickReply(a: Context) {
                 eq(Post.access, 0),
             ))
         )?.[0]
-        
         if (!quote) {
             return a.json({ success: false, message: '主题不存在' }, 403)
         }
-        
-        // 创建HTML内容
-        const content = `<p>${HTMLFilter(rawContent)}</p>`
-        if (!content) {
-            return a.json({ success: false, message: '内容不合规' }, 406)
-        }
-        
+
         // 更新主题信息 (参考标准回复功能)
         const thread = (await DB
             .update(Thread)
@@ -299,12 +296,11 @@ export async function pQuickReply(a: Context) {
             ))
             .returning()
         )?.[0]
-        
         // 主题不存在或已关闭
         if (!thread) {
             return a.json({ success: false, message: '主题已关闭或超过回复时间' }, 403)
         }
-        
+
         // 添加回复
         const post = (await DB
             .insert(Post)
@@ -316,7 +312,7 @@ export async function pQuickReply(a: Context) {
             })
             .returning()
         )?.[0]
-        
+
         // 更新用户信息
         await DB
             .update(User)
@@ -326,16 +322,16 @@ export async function pQuickReply(a: Context) {
                 golds: sql`${User.golds} + 1`,
             })
             .where(eq(User.uid, post.uid))
-        
+
         // 回复通知 (如果回复的不是自己)
         if (post.uid != quote.uid) {
             await mAdd(quote.uid, 1, post.pid)
         }
-        
+
         // 记录发帖时间和刷新Cookie
         lastPostTime(i.uid, time)
         cookieReset(i.uid, true)
-        
+
         return a.json({ success: true, pid: post.pid })
     } catch (error) {
         console.error('Quick reply error:', error)
