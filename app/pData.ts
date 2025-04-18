@@ -258,13 +258,14 @@ export async function pQuickReply(a: Context) {
 
     try {
         const body = await a.req.json()
+        const raw = body.content?.toString().trim() || ''
 
         const tid = parseInt(body.tid?.toString() || '0')
-        if (!tid) {
+        if (!tid || !raw) {
             return a.json({ success: false, message: '参数错误' }, 400)
         }
 
-        const content = HTMLFilter(body.content?.toString().trim().replace(/\r?\n/g, '<br />') || '');
+        const content = HTMLFilter('<p>' + raw.replace(/\r?\n/g, '</p><p>') + '</p>');
         if (!content) {
             return a.json({ success: false, message: '内容不合规' }, 406)
         }
