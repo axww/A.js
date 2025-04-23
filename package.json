@@ -1,7 +1,7 @@
 {
   "name": "a",
   "scripts": {
-    "app": "bunx tailwindcss -o ./const/a.css && bun run app/app.ts",
+    "app": "bunx tailwindcss -o ./const/a.css && bun --smol run app/app.ts",
     "dev": "concurrently 'bunx tailwindcss -o ./const/a.css --watch' 'bun run --hot app/app.ts'",
     "db:generate": "bunx drizzle-kit generate",
     "db:push": "bunx drizzle-kit push",
