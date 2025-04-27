@@ -14,7 +14,6 @@ import { pList } from './pList'
 import { tList } from './tList'
 import { tPeak } from './tData'
 import { fUpload } from './fUpload'
-import { fCatBoxImage } from './fCatBox'
 
 const app = new Hono();
 app.use(csrf());
@@ -45,7 +44,6 @@ app.post('/f', bodyLimit({
     maxSize: 10 * 1024 * 1024, // MB
     onError: (a) => a.text('Payload Too Large', 413),
 }), fUpload);
-app.get('/f/catbox-image/:fid{[a-z0-9]+}', fCatBoxImage);
 
 // Sitemap
 app.get('/sitemap.xml', async (a) => {
