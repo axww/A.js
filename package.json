@@ -11,11 +11,11 @@
     "@libsql/client": "^0.14.0",
     "drizzle-orm": "^0.40.1",
     "file-type": "^20.5.0",
-    "hono": "^4.7.7",
+    "hono": "^4.7.8",
     "xregexp": "^5.1.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.10",
+    "@types/bun": "^1.2.11",
     "concurrently": "^9.1.2",
     "daisyui": "^4.12.24",
     "drizzle-kit": "^0.30.6",
