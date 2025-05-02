@@ -1,7 +1,5 @@
 .env
-migrations/
 node_modules/
-upload/
 app.db
 app.db-shm
 app.db-wal

@@ -71,7 +71,6 @@ app.get('/sitemap.xml', async (a) => {
 });
 
 // File
-app.use('/upload/*', serveStatic({ root: './' }));
 app.use('/*', serveStatic({ root: './const/' }));
 
 export default {
