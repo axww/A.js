@@ -15,7 +15,7 @@
     "xregexp": "^5.1.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.11",
+    "@types/bun": "^1.2.12",
     "concurrently": "^9.1.2",
     "daisyui": "^4.12.24",
     "drizzle-kit": "^0.30.6",
