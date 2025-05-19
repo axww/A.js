@@ -8,17 +8,16 @@
     "db:init": "bun run init.ts"
   },
   "dependencies": {
-    "@libsql/client": "^0.14.0",
-    "drizzle-orm": "^0.40.1",
-    "file-type": "^20.5.0",
-    "hono": "^4.7.8",
+    "@libsql/client": "^0.15.6",
+    "drizzle-orm": "^0.43.1",
+    "hono": "^4.7.10",
     "xregexp": "^5.1.2"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.12",
+    "@types/bun": "^1.2.13",
     "concurrently": "^9.1.2",
     "daisyui": "^4.12.24",
-    "drizzle-kit": "^0.30.6",
+    "drizzle-kit": "^0.31.1",
     "tailwindcss": "^3.4.17"
   }
 }

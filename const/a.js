@@ -128,12 +128,12 @@ function upload() {
                     if (!response.ok) {
                         throw new Error('[' + response.status + '] ' + await response.text());
                     }
-                    return await response.text();
+                    return await response.json();
                 })
-                .then(fid => {
-                    if (!fid) { return false; }
+                .then(json => {
+                    if (!Object.keys(json).length || !json.success) { alert('Request Error'); return false; }
                     const range = quill.getSelection();
-                    quill.insertEmbed(range.index, 'image', 'https://i0.wp.com/files.catbox.moe/' + fid + '?w=1920');
+                    quill.insertEmbed(range.index, 'image', 'https://i0.wp.com/' + json.data.url.substring(8) + '?w=1920');
                     quill.setSelection(range.index + 1);
                 })
                 .catch(error => {
