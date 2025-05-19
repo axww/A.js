@@ -5,5 +5,3 @@ Disallow: /e
 Disallow: /login
 Disallow: /logout
 Disallow: /register
-
-Sitemap: /sitemap.xml

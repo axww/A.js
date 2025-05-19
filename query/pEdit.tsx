@@ -3,7 +3,7 @@ import { raw } from "hono/html";
 import { Props, DB, Post } from "./base";
 import { Auth, IsAdmin } from "./core";
 import { and, eq, gt, sql } from "drizzle-orm";
-import { PEdit } from "../bare/PEdit";
+import { PEdit } from "../render/PEdit";
 
 export interface PEditProps extends Props {
     eid: number,
@@ -24,7 +24,7 @@ export async function pEdit(a: Context) {
     let thread: { tid: number, subject: string } | undefined
     if (eid < 0) {
         title = "编辑"
-        const post = (await DB
+        const post = (await DB(a)
             .select()
             .from(Post)
             .where(and(
@@ -47,5 +47,5 @@ export async function pEdit(a: Context) {
         thread = undefined
     }
     const edit_forbid = true;
-    return a.html(PEdit({ a, i, title, eid, content, edit_forbid, thread }));
+    return a.html(PEdit(a, { i, title, eid, content, edit_forbid, thread }));
 }

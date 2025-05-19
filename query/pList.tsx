@@ -3,7 +3,7 @@ import { Props, DB, Post, Thread, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
 import { asc, eq, or, getTableColumns, and, ne } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
-import { PList } from "../bare/PList";
+import { PList } from "../render/PList";
 
 export interface PListProps extends Props {
     thread: typeof Thread.$inferSelect
@@ -21,7 +21,7 @@ export interface PListProps extends Props {
 export async function pList(a: Context) {
     const i = await Auth(a)
     const tid = parseInt(a.req.param('tid'))
-    const thread = (await DB
+    const thread = (await DB(a)
         .select()
         .from(Thread)
         .where(and(
@@ -31,10 +31,10 @@ export async function pList(a: Context) {
     )?.[0]
     if (!thread) { return a.notFound() }
     const page = parseInt(a.req.param('page') ?? '0') || 1
-    const page_size_p = await Config.get<number>('page_size_p') || 20
+    const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const QuotePost = alias(Post, 'QuotePost')
     const QuoteUser = alias(User, 'QuoteUser')
-    const data = await DB
+    const data = await DB(a)
         .select({
             ...getTableColumns(Post),
             name: User.name,
@@ -62,5 +62,5 @@ export async function pList(a: Context) {
     const pagination = Pagination(page_size_p, thread.posts, page, 2)
     const title = thread.subject
     const edit_forbid = (thread.last_time + 604800) < Math.floor(Date.now() / 1000)
-    return a.html(PList({ a, i, thread, page, pagination, data, title, edit_forbid }))
+    return a.html(PList(a, { i, thread, page, pagination, data, title, edit_forbid }))
 }

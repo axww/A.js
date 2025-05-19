@@ -1,16 +1,17 @@
+import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../app/base";
+import { Props } from "../query/base";
+import { Config } from "../query/core";
 import { Header, Footer } from "./Common"
-import { Config } from "../app/core";
 
-export async function IAuth(z: Props) {
+export async function IAuth(a: Context, z: Props) {
   return html`
-${Header(z)}
+${Header(a, z)}
 
 <div class="flex flex-col justify-center px-6 lg:px-8 h-full">
     <form class="space-y-8 sm:mx-auto sm:w-full sm:max-w-sm" onsubmit="auth(this);">
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-gray-900">${await Config.get<string>('site_name')}</h2>
+        <h2 class="text-center text-2xl/9 font-bold tracking-tight text-gray-900">${await Config.get<string>(a, 'site_name')}</h2>
       </div>
       <div>
         <input type="text" name="acct" placeholder="邮箱" required class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6 mb-2">
@@ -85,6 +86,6 @@ ${Header(z)}
       }
 </script>
 
-${Footer(z)}
+${Footer(a, z)}
 `;
 }

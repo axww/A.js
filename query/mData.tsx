@@ -11,7 +11,7 @@ export async function _mList(a: Context) {
     const type = a.req.queries('type')?.map(Number).filter(n => !isNaN(n)) ?? [];
     const pid = parseInt(a.req.query('pid') ?? '0');
     const QuotePost = alias(Post, 'QuotePost')
-    const data = await DB
+    const data = await DB(a)
         .select({
             type: Message.type, // 添加消息类型字段，用于区分已读/未读
             quote_pid: QuotePost.pid,
@@ -34,9 +34,9 @@ export async function _mList(a: Context) {
         .leftJoin(QuotePost, eq(QuotePost.pid, sql`CASE WHEN ${Post.quote_pid} = 0 THEN ${Post.tid} ELSE ${Post.quote_pid} END`))
         .orderBy(desc(Message.pid))
         .limit(10)
-    data.forEach(function (row) {
-        row.quote_content = HTMLText.all(row.quote_content, 300);
-        row.post_content = HTMLText.all(row.post_content, 300);
+    data.forEach(async function (row) {
+        row.quote_content = await HTMLText.all(row.quote_content, 300);
+        row.post_content = await HTMLText.all(row.post_content, 300);
     })
     return a.json(data)
 }
@@ -44,7 +44,7 @@ export async function _mList(a: Context) {
 export async function _mClear(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    mClear(i.uid, 1);
+    mClear(a, i.uid, 1);
     return a.json('ok')
 }
 
@@ -56,6 +56,6 @@ export async function _mRead(a: Context) {
     const pid = parseInt(a.req.query('pid') ?? '0');
     if (!pid) { return a.json({ success: false, message: '无效的消息ID' }) }
 
-    await mRead(i.uid, 1, pid);
+    await mRead(a, i.uid, 1, pid);
     return a.json({ success: true });
 }

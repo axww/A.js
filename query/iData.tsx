@@ -1,11 +1,9 @@
-import { randomBytes } from "crypto";
 import { Context } from "hono";
 import { sign } from "hono/jwt";
-import { DB, User } from "./base";
-import { Auth, Config } from "./core";
-import { eq, or } from "drizzle-orm";
 import { deleteCookie, setCookie } from "hono/cookie";
-import XRegExp from "xregexp";
+import { DB, User } from "./base";
+import { Auth, Config, RandomString } from "./core";
+import { eq, or } from "drizzle-orm";
 
 function md5(r: string): string {
     function n(r: number, n: number): number {
@@ -96,7 +94,7 @@ export async function iLogin(a: Context) {
     if (!acct || !pass) {
         return a.text('401', 401);
     }
-    const user = (await DB
+    const user = (await DB(a)
         .select()
         .from(User)
         .where(or(eq(User.mail, acct), eq(User.name, acct)))
@@ -111,7 +109,7 @@ export async function iLogin(a: Context) {
     }
     const { hash, salt, ...i } = user;
     try {
-        const token = await sign(i, await Config.get<string>('secret_key'));
+        const token = await sign(i, await Config.get<string>(a, 'secret_key'));
         setCookie(a, 'JWT', token, { maxAge: 2592000 });
         return a.text('ok');
     } catch (error) {
@@ -131,12 +129,8 @@ export async function iRegister(a: Context) {
     const pass = body.get('pass')?.toString() ?? ''
     if (!acct || !pass) { return a.notFound() }
     const time = Math.floor(Date.now() / 1000)
-    let rand = randomBytes(Math.ceil(8))
-        .toString("base64")
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, () => String.fromCharCode(65 + Math.floor(Math.random() * 36)))
-        .slice(0, 16);
-    const data = (await DB
+    let rand = RandomString(16);
+    const data = (await DB(a)
         .insert(User)
         .values({
             mail: acct,
@@ -150,7 +144,7 @@ export async function iRegister(a: Context) {
     )?.[0]
     if (!data) { return a.text('data_conflict', 409) }
     const { hash, salt, ...i } = data
-    setCookie(a, 'JWT', await sign(i, await Config.get<string>('secret_key')), { maxAge: 2592000 })
+    setCookie(a, 'JWT', await sign(i, await Config.get<string>(a, 'secret_key')), { maxAge: 2592000 })
     return a.text('ok')
 }
 
@@ -165,17 +159,17 @@ export async function iSave(a: Context) {
     const name = body.get('name')?.toString() ?? ''
     if (!name) { return a.text('name_empty', 422) }
     if (name.length > 20) { return a.text('name_too_long', 422) }
-    if (!XRegExp.tag()`^\p{L}[\p{L}\p{N}-_]*$`.test(name)) { return a.text('name_illegal', 422) }
+    if (!/^[\p{L}][\p{L}\p{N}_-]*$/u.test(name)) { return a.text('name_illegal', 422) }
     const pass = body.get('pass')?.toString() ?? ''
     const pass_confirm = body.get('pass_confirm')?.toString() ?? ''
-    const data = (await DB
+    const data = (await DB(a)
         .select()
         .from(User)
         .where(eq(User.uid, i.uid))
     )?.[0]
     if (!data || md5(pass_confirm + data.salt) != data.hash) { return a.text('pass_confirm', 401) }
     try {
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 mail: mail,
@@ -188,6 +182,6 @@ export async function iSave(a: Context) {
     }
     i.mail = mail
     i.name = name
-    setCookie(a, 'JWT', await sign(i, await Config.get<string>('secret_key')), { maxAge: 2592000 })
+    setCookie(a, 'JWT', await sign(i, await Config.get<string>(a, 'secret_key')), { maxAge: 2592000 })
     return a.text('ok')
 }

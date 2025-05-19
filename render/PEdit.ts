@@ -1,8 +1,9 @@
+import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { PEditProps } from "../app/pEdit";
+import { PEditProps } from "../query/pEdit";
 import { Header, Footer } from "./Common"
 
-export function PEdit(z: PEditProps) {
+export function PEdit(a: Context, z: PEditProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>
@@ -29,7 +30,7 @@ export function PEdit(z: PEditProps) {
         </style>
     `)
     return html`
-${Header(z)}
+${Header(a, z)}
 
 <div class="container mx-auto max-w-5xl">
     <div class="card bg-base-100 shadow-lg">
@@ -58,6 +59,6 @@ ${Header(z)}
     toolbar.addHandler('image', upload);
 </script>
 
-${Footer(z)}
+${Footer(a, z)}
 `;
 }

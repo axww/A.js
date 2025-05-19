@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { sign, verify } from "hono/jwt";
 import { getCookie, setCookie } from "hono/cookie";
+import { eq } from 'drizzle-orm';
 import { DB, Conf, I, User } from "./base";
 import { cookieReset } from "./uCore";
-import { eq } from 'drizzle-orm';
 
 export class Maps {
     // 存储 map 的内存容器
@@ -35,8 +35,8 @@ export class Config {
     private static data = Maps.get<string, any>('Config');
     private static void = true;
     private constructor() { }
-    static async init() {
-        const configs = await DB.select().from(Conf);
+    static async init(a: Context) {
+        const configs = await DB(a).select().from(Conf);
         configs.forEach(({ key, value }) => {
             try {
                 this.data.set(key, value ? JSON.parse(value) : null);
@@ -46,14 +46,14 @@ export class Config {
             }
         });
     }
-    static async get<T>(key: string): Promise<T> {
-        if (this.void) { await this.init(); }
+    static async get<T>(a: Context, key: string): Promise<T> {
+        if (this.void) { await this.init(a); }
         return this.data.get(key) as T;
     }
-    static async set(key: string, value: any) {
-        if (this.void) { await this.init(); }
+    static async set(a: Context, key: string, value: any) {
+        if (this.void) { await this.init(a); }
         try {
-            await DB
+            await DB(a)
                 .insert(Conf)
                 .values({ key, value })
                 .onConflictDoUpdate({
@@ -71,10 +71,10 @@ export async function Auth(a: Context) {
     const jwt = getCookie(a, 'JWT');
     if (!jwt) { return undefined }
     try {
-        const secret_key = await Config.get<string>('secret_key')
+        const secret_key = await Config.get<string>(a, 'secret_key')
         let i = await verify(jwt, secret_key) as I
         if (!cookieReset(i.uid)) { return i } // 不要刷新时 直接返回用户
-        const data = (await DB
+        const data = (await DB(a)
             .select()
             .from(User)
             .where(eq(User.uid, i.uid))
@@ -142,11 +142,11 @@ export function Pagination(perPage: number, sum: number, page: number, near: num
     return navigation
 }
 
-export function HTMLFilter(html: string | null | undefined) {
+export async function HTMLFilter(html: string | null | undefined) {
     if (!html) { return ''; }
     const allowedTags = new Set(['a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br', 'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section']);
     const allowedAttrs = new Set(['target', 'href', 'src', 'alt', 'rel', 'width', 'height', 'size', 'border', 'align', 'colspan', 'rowspan', 'cite']);
-    return new HTMLRewriter().on("*", {
+    return await new HTMLRewriter().on("*", {
         element: e => {
             if (!allowedTags.has(e.tagName)) {
                 e.removeAndKeepContent();
@@ -158,7 +158,7 @@ export function HTMLFilter(html: string | null | undefined) {
                 }
             }
         }
-    }).transform(html);
+    }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
 }
 
 export class HTMLText {
@@ -193,11 +193,11 @@ export class HTMLText {
             }
         }
     });
-    public static run(html: string | null | undefined, len: number) {
+    public static async run(html: string | null | undefined, len: number) {
         if (!html) { return '...' }
         this.stop = 0;
         this.value = '';
-        this.rewriter.transform(html);
+        await this.rewriter.transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
         let text = this.value.trim();
         if (len > 0) {
             const lenOld = text.length
@@ -214,14 +214,14 @@ export class HTMLText {
             .trim() || '...'
     }
     // 取首行
-    public static one(html: string | null | undefined, len = 0) {
+    public static async one(html: string | null | undefined, len = 0) {
         this.first = true;
-        return this.run(html, len)
+        return await this.run(html, len)
     }
     // 取全文
-    public static all(html: string | null | undefined, len = 0) {
+    public static async all(html: string | null | undefined, len = 0) {
         this.first = false;
-        return this.run(html, len)
+        return await this.run(html, len)
     }
 }
 
@@ -234,4 +234,15 @@ export function URLQuery(a: Context) {
         }
     });
     return query.size ? '?' + query.toString() : '';
+}
+
+export function RandomString(length: number = 16): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // 仅限 A-Z 和 0-9
+    let result = "";
+    const array = new Uint8Array(length);
+    crypto.getRandomValues(array);
+    for (let i = 0; i < length; i++) {
+        result += chars[array[i] % chars.length]; // 确保字符范围只在 chars 内
+    }
+    return result;
 }

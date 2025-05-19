@@ -1,11 +1,12 @@
+import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { TListProps } from "../app/tList";
+import { TListProps } from "../query/tList";
+import { URLQuery } from "../query/core";
 import { Header, Footer } from "./Common"
-import { URLQuery } from "../app/core";
 
-export function TList(z: TListProps) {
+export function TList(a: Context, z: TListProps) {
     return html`
-${Header(z)}
+${Header(a, z)}
 
 <div class="max-w-5xl mx-auto">
 
@@ -71,7 +72,7 @@ ${Header(z)}
             <div class="join shadow-sm">
                 ${z.pagination.map(item => html`
                     ${item ? html`
-                        <a href="/${item}${URLQuery(z.a)}" 
+                        <a href="/${item}${URLQuery(a)}" 
                            class="join-item btn btn-sm ${item == z.page ? 'btn-primary' : 'btn-ghost'}">${item ? item : '...'}</a>
                     ` : html`
                         <span class="join-item btn btn-sm btn-ghost">...</span>
@@ -99,7 +100,7 @@ ${Header(z)}
     `}
 </div>
 
-${Footer(z)}
+${Footer(a, z)}
 `
         ;
 }

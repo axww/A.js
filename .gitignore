@@ -1,6 +1,34 @@
-.env
+# prod
+dist/
+
+# dev
+.yarn/
+!.yarn/releases
+.vscode/*
+!.vscode/launch.json
+!.vscode/*.code-snippets
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf
+
+# deps
 node_modules/
-app.db
-app.db-shm
-app.db-wal
-app.db-client_wal_index
+.wrangler
+
+# env
+.env
+.env.production
+.dev.vars
+wrangler.jsonc
+
+# logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# misc
+.DS_Store

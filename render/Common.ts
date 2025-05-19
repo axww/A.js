@@ -1,15 +1,16 @@
+import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { Props } from "../app/base";
-import { Config } from "../app/core";
-import { unreadMessage } from "../app/uCore";
+import { Props } from "../query/base";
+import { Config } from "../query/core";
+import { unreadMessage } from "../query/uCore";
 
-export async function Header(z: Props) {
-  const siteName = await Config.get<string>('site_name');
-  const siteDesc = await Config.get<string>('site_description');
-  const keywords = await Config.get<string>('site_keywords');
+export async function Header(a: Context, z: Props) {
+  const siteName = await Config.get<string>(a, 'site_name');
+  const siteDesc = await Config.get<string>(a, 'site_description');
+  const keywords = await Config.get<string>(a, 'site_keywords');
   const pageTitle = z.title && z.title !== siteName ? `${z.title} - ${siteName}` : siteName;
   const pageDesc = z.description || siteDesc;
-  const currentUrl = z.a.req.url;
+  const currentUrl = a.req.url;
 
   return html`
 <!DOCTYPE HTML>
@@ -28,7 +29,6 @@ export async function Header(z: Props) {
   <meta property="og:description" content="${raw(pageDesc)}" />
   <link rel="canonical" href="${currentUrl}" />
   <link rel="stylesheet" type="text/css" href="/a.css" />
-  <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
   <script type="text/javascript" src="/a.js"></script>
   ${z.head_external ?? ''}
 </head>
@@ -45,14 +45,14 @@ export async function Header(z: Props) {
           </label>
         </div>
         <div class="flex-1 px-2">
-          <a href="/" class="btn btn-ghost text-xl normal-case">${await Config.get<string>('site_name')}</a>
+          <a href="/" class="btn btn-ghost text-xl normal-case">${await Config.get<string>(a, 'site_name')}</a>
         </div>
         <div class="flex-none hidden lg:block">
           <ul class="menu menu-horizontal gap-2 items-center">
             <!-- 导航菜单 -->
             ${z.i ? html`
-              ${z.edit_forbid ? '' : (Object.prototype.hasOwnProperty.call(z.a.req.param(), 'tid') ? html`
-                <li><a href="/e/${z.a.req.param('tid')}" class="btn btn-sm btn-ghost gap-2">
+              ${z.edit_forbid ? '' : (Object.prototype.hasOwnProperty.call(a.req.param(), 'tid') ? html`
+                <li><a href="/e/${a.req.param('tid')}" class="btn btn-sm btn-ghost gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                   </svg>
@@ -66,7 +66,7 @@ export async function Header(z: Props) {
                   发表
                 </a></li>
               `)}
-              <li><a href="/m" class="btn btn-sm ${await unreadMessage(z.i.uid) ? 'btn-error' : 'btn-ghost'} gap-2">
+              <li><a href="/m" class="btn btn-sm ${await unreadMessage(a, z.i.uid) ? 'btn-error' : 'btn-ghost'} gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -102,8 +102,8 @@ export async function Header(z: Props) {
     `
 }
 
-export async function Footer(z: Props) {
-  const friendLinks = await Config.get<{ url: string; name: string; }[]>('friend_link') ?? [];
+export async function Footer(a: Context, z: Props) {
+  const friendLinks = await Config.get<{ url: string; name: string; }[]>(a, 'friend_link') ?? [];
   return html`
     </main>
     <!-- Footer -->
@@ -126,13 +126,13 @@ export async function Footer(z: Props) {
       <label for="drawer-toggle" class="drawer-overlay"></label>
       <div class="menu p-4 w-80 min-h-full bg-base-100">
         <!-- 抽屉标题 -->
-        <div class="font-bold text-lg mb-4 px-4">${await Config.get<string>('site_name')}</div>
+        <div class="font-bold text-lg mb-4 px-4">${await Config.get<string>(a, 'site_name')}</div>
         <!-- 抽屉菜单项 -->
         <ul class="menu menu-lg gap-2">
           ${z.i ? html`
-            ${z.edit_forbid ? '' : (Object.prototype.hasOwnProperty.call(z.a.req.param(), 'tid') ? html`
+            ${z.edit_forbid ? '' : (Object.prototype.hasOwnProperty.call(a.req.param(), 'tid') ? html`
               <li>
-                <a href="/e/${z.a.req.param('tid')}" class="gap-4">
+                <a href="/e/${a.req.param('tid')}" class="gap-4">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                   </svg>
@@ -150,7 +150,7 @@ export async function Footer(z: Props) {
               </li>
             `)}
             <li>
-              <a href="/m" class="gap-4 ${await unreadMessage(z.i.uid) ? 'text-error' : ''}">
+              <a href="/m" class="gap-4 ${await unreadMessage(a, z.i.uid) ? 'text-error' : ''}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>

@@ -1,6 +1,7 @@
 import { and, eq, count } from "drizzle-orm";
 import { DB, Message } from "./base";
 import { Maps } from "./core";
+import { Context } from "hono";
 
 // 设置用户COOKIE为待更新
 export async function cookieReset(uid: number, reset: boolean | undefined = undefined) {
@@ -13,12 +14,12 @@ export async function cookieReset(uid: number, reset: boolean | undefined = unde
 }
 
 // 用户未读回复计数
-export async function unreadMessage(uid: number, change: number | null = 0) {
+export async function unreadMessage(a: Context, uid: number, change: number | null = 0) {
     const map = Maps.get<number, number>('unreadMessage');
     let sum = map.get(uid);
     // 消息初始化
     if (sum === undefined) {
-        sum = (await DB
+        sum = (await DB(a)
             .select({ count: count(Message.pid) })
             .from(Message)
             .where(and(

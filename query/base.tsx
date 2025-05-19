@@ -1,7 +1,6 @@
 import { Context } from "hono";
-import { drizzle } from "drizzle-orm/libsql";
-import { createClient } from '@libsql/client';
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
+import { drizzle } from "drizzle-orm/d1";
 
 /*
 【致开发者】
@@ -9,15 +8,9 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 如果需要做结构上的变动，请先在GitHub讨论区发帖。
 */
 
-export const DB = function () {
-    const db = createClient({
-        url: "file:app.db",
-        syncUrl: process.env.TURSO_DATABASE_URL,
-        authToken: process.env.TURSO_AUTH_TOKEN,
-        syncInterval: 60,
-    });
-    return drizzle(db, { logger: false });
-}()
+export function DB(a: Context) {
+    return drizzle(a.env.DB);
+}
 
 export const Conf = sqliteTable("conf", {
     key: text().primaryKey(),
@@ -84,7 +77,6 @@ export const User = sqliteTable("user", {
 export type I = Omit<typeof User.$inferSelect, "hash" | "salt">
 
 export interface Props {
-    a: Context
     i: I | undefined
     title: string
     description?: string;  // 可选的描述属性，用于SEO

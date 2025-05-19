@@ -14,10 +14,10 @@ export async function pSave(a: Context) {
     const eid = parseInt(a.req.param('eid') ?? '0')
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
-        const content = HTMLFilter(raw)
+        const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
-        const subject = HTMLText.one(raw, 140)
-        const post = (await DB
+        const subject = await HTMLText.one(raw, 140)
+        const post = (await DB(a)
             .update(Post)
             .set({
                 content: content,
@@ -32,7 +32,7 @@ export async function pSave(a: Context) {
         )?.[0]
         if (!post) { return a.text('403', 403) }
         if (!post.tid) {
-            await DB
+            await DB(a)
                 .update(Thread)
                 .set({
                     subject,
@@ -42,7 +42,7 @@ export async function pSave(a: Context) {
         return a.text('ok')
     } else if (eid > 0) { // 回复
         if (time - lastPostTime(i.uid) < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        const quote = (await DB
+        const quote = (await DB(a)
             .select()
             .from(Post)
             .where(and(
@@ -51,9 +51,9 @@ export async function pSave(a: Context) {
             ))
         )?.[0]
         if (!quote) { return a.text('403', 403) }
-        const content = HTMLFilter(raw)
+        const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
-        const thread = (await DB
+        const thread = (await DB(a)
             .update(Thread)
             .set({
                 posts: sql`${Thread.posts}+1`,
@@ -68,7 +68,7 @@ export async function pSave(a: Context) {
         )?.[0]
         // 帖子找不到 一周没有热度 禁止回复
         if (!thread) { return a.text('403', 403) }
-        const post = (await DB
+        const post = (await DB(a)
             .insert(Post)
             .values({
                 tid: quote.tid ? quote.tid : quote.pid,
@@ -79,7 +79,7 @@ export async function pSave(a: Context) {
             })
             .returning()
         )?.[0]
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 posts: sql`${User.posts} + 1`,
@@ -89,7 +89,7 @@ export async function pSave(a: Context) {
             .where(eq(User.uid, post.uid))
         // 回复通知开始 如果回复的不是自己
         if (post.uid != quote.uid) {
-            await mAdd(quote.uid, 1, post.pid)
+            await mAdd(a, quote.uid, 1, post.pid)
         }
         // 回复通知结束
         lastPostTime(i.uid, time) // 记录发帖时间
@@ -97,10 +97,10 @@ export async function pSave(a: Context) {
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (time - lastPostTime(i.uid) < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        const content = HTMLFilter(raw)
+        const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
-        const subject = HTMLText.one(raw, 140)
-        const post = (await DB
+        const subject = await HTMLText.one(raw, 140)
+        const post = (await DB(a)
             .insert(Post)
             .values({
                 uid: i.uid,
@@ -109,7 +109,7 @@ export async function pSave(a: Context) {
             })
             .returning()
         )?.[0]
-        await DB
+        await DB(a)
             .insert(Thread)
             .values({
                 tid: post.pid,
@@ -119,7 +119,7 @@ export async function pSave(a: Context) {
                 last_time: time,
                 posts: 1,
             })
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 threads: sql`${User.threads} + 1`,
@@ -128,7 +128,7 @@ export async function pSave(a: Context) {
                 golds: sql`${User.golds} + 2`,
             })
             .where(eq(User.uid, i.uid))
-        await Config.set('threads', (await Config.get<number>('threads') || 0) + 1)
+        await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) + 1)
         lastPostTime(i.uid, time) // 记录发帖时间
         cookieReset(i.uid, true) // 刷新自己的COOKIE
         return a.text(String(post.pid))
@@ -139,7 +139,7 @@ export async function pOmit(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     const pid = -parseInt(a.req.param('eid') ?? '0')
-    const post = (await DB
+    const post = (await DB(a)
         .update(Post)
         .set({
             access: 3,
@@ -154,7 +154,7 @@ export async function pOmit(a: Context) {
     if (!post) { return a.text('410:gone', 410) }
     if (post.tid) {
         // 如果删的是Post
-        const last = (await DB
+        const last = (await DB(a)
             .select()
             .from(Post)
             .where(and(
@@ -169,7 +169,7 @@ export async function pOmit(a: Context) {
             .orderBy(desc(Post.pid))
             .limit(1)
         )?.[0]
-        await DB
+        await DB(a)
             .update(Thread)
             .set({
                 posts: sql`${Thread.posts} - 1`,
@@ -177,7 +177,7 @@ export async function pOmit(a: Context) {
                 last_time: last.time,
             })
             .where(eq(Thread.tid, post.tid))
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 posts: sql`${User.posts} - 1`,
@@ -186,7 +186,7 @@ export async function pOmit(a: Context) {
             })
             .where(eq(User.uid, post.uid))
         // 回复通知开始
-        const quote = (await DB
+        const quote = (await DB(a)
             .select()
             .from(Post)
             .where(eq(Post.pid, post.quote_pid))
@@ -194,12 +194,12 @@ export async function pOmit(a: Context) {
         // 如果存在被回复帖 且回复的不是自己
         if (quote && post.uid != quote.uid) {
             // 未读 已读 消息都删
-            await mDel(quote.uid, [-1, 1], post.pid)
+            await mDel(a, quote.uid, [-1, 1], post.pid)
         }
         // 回复通知结束
     } else {
         // 如果删的是Thread
-        await DB
+        await DB(a)
             .update(Thread)
             .set({
                 access: 3,
@@ -208,7 +208,7 @@ export async function pOmit(a: Context) {
                 eq(Thread.tid, post.pid), // thread首帖 post.pid=thread.tid post.tid=0
                 IsAdmin(i, undefined, eq(Thread.uid, i.uid)), // 管理和作者都能删除
             ))
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 threads: sql`${User.threads} - 1`,
@@ -217,11 +217,11 @@ export async function pOmit(a: Context) {
                 golds: sql`${User.golds} - 2`,
             })
             .where(eq(User.uid, post.uid))
-        await Config.set('threads', (await Config.get<number>('threads') || 0) - 1)
+        await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) - 1)
         // 回复通知开始
         const QuotePost = alias(Post, 'QuotePost')
         // 向被引用人发送了回复通知的帖子
-        const postArr = await DB
+        const postArr = await DB(a)
             .select({
                 pid: Post.pid,
                 time: Post.time,
@@ -237,7 +237,7 @@ export async function pOmit(a: Context) {
         postArr.forEach(async function (post) {
             if (post.quote_uid) {
                 // 未读 已读 消息都删
-                await mDel(post.quote_uid, [-1, 1], post.pid)
+                await mDel(a, post.quote_uid, [-1, 1], post.pid)
             }
         })
         // 回复通知结束
@@ -265,13 +265,13 @@ export async function pQuickReply(a: Context) {
             return a.json({ success: false, message: '参数错误' }, 400)
         }
 
-        const content = HTMLFilter('<p>' + raw.replace(/\r?\n/g, '</p><p>') + '</p>');
+        const content = await HTMLFilter('<p>' + raw.replace(/\r?\n/g, '</p><p>') + '</p>');
         if (!content) {
             return a.json({ success: false, message: '内容不合规' }, 406)
         }
 
         // 获取主题帖子 (参考标准回复功能)
-        const quote = (await DB
+        const quote = (await DB(a)
             .select()
             .from(Post)
             .where(and(
@@ -284,7 +284,7 @@ export async function pQuickReply(a: Context) {
         }
 
         // 更新主题信息 (参考标准回复功能)
-        const thread = (await DB
+        const thread = (await DB(a)
             .update(Thread)
             .set({
                 posts: sql`${Thread.posts}+1`,
@@ -303,7 +303,7 @@ export async function pQuickReply(a: Context) {
         }
 
         // 添加回复
-        const post = (await DB
+        const post = (await DB(a)
             .insert(Post)
             .values({
                 tid: quote.tid ? quote.tid : quote.pid,
@@ -315,7 +315,7 @@ export async function pQuickReply(a: Context) {
         )?.[0]
 
         // 更新用户信息
-        await DB
+        await DB(a)
             .update(User)
             .set({
                 posts: sql`${User.posts} + 1`,
@@ -326,7 +326,7 @@ export async function pQuickReply(a: Context) {
 
         // 回复通知 (如果回复的不是自己)
         if (post.uid != quote.uid) {
-            await mAdd(quote.uid, 1, post.pid)
+            await mAdd(a, quote.uid, 1, post.pid)
         }
 
         // 记录发帖时间和刷新Cookie

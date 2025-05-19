@@ -1,11 +1,12 @@
+import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../app/base";
+import { Props } from "../query/base";
 import { Header, Footer } from "./Common"
 
-export function IConf(z: Props) {
+export function IConf(a: Context, z: Props) {
   z.i = z.i! // 非空断言
   return html`
-${Header(z)}
+${Header(a, z)}
 
 <div class="container w-full mx-auto max-w-5xl p-6 bg-white shadow-md rounded-lg divide-y divide-gray-200">
   <form onsubmit="event.preventDefault(); save(this);">
@@ -80,6 +81,6 @@ ${Header(z)}
     }
 </script>
 
-${Footer(z)}
+${Footer(a, z)}
 `;
 }

@@ -7,7 +7,7 @@ export async function tPeak(a: Context) {
     const i = await Auth(a)
     if (!i || i.gid != 1) { return a.text('401', 401) }
     const tid = parseInt(a.req.param('tid') ?? '0')
-    const post = (await DB
+    const post = (await DB(a)
         .update(Thread)
         .set({
             is_top: sql`CASE WHEN ${Thread.is_top} = 0 THEN 1 ELSE 0 END`,

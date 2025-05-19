@@ -1,43 +1,44 @@
+import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { HTMLText, URLQuery } from "../app/core";
-import { PListProps } from "../app/pList";
+import { HTMLText, URLQuery } from "../query/core";
+import { PListProps } from "../query/pList";
 import { Header, Footer } from "./Common"
 
 // 预定义颜色调色板（移至顶层避免重复创建）
 const AVATAR_COLORS = [
-  'hsl(4, 90%, 58%)',    // 红色
-  'hsl(340, 82%, 52%)',  // 玫红
-  'hsl(262, 67%, 58%)',  // 紫色
-  'hsl(210, 90%, 60%)',  // 蓝色
-  'hsl(199, 98%, 48%)',  // 青色
-  'hsl(162, 73%, 46%)',  // 绿色
-  'hsl(141, 78%, 42%)',  // 浅绿
-  'hsl(39, 100%, 50%)',  // 橙色
-  'hsl(27, 96%, 61%)',   // 橘色
-  'hsl(15, 86%, 57%)'    // 红橙
+    'hsl(4, 90%, 58%)',    // 红色
+    'hsl(340, 82%, 52%)',  // 玫红
+    'hsl(262, 67%, 58%)',  // 紫色
+    'hsl(210, 90%, 60%)',  // 蓝色
+    'hsl(199, 98%, 48%)',  // 青色
+    'hsl(162, 73%, 46%)',  // 绿色
+    'hsl(141, 78%, 42%)',  // 浅绿
+    'hsl(39, 100%, 50%)',  // 橙色
+    'hsl(27, 96%, 61%)',   // 橘色
+    'hsl(15, 86%, 57%)'    // 红橙
 ];
 
 // 根据字符串生成一致的颜色
 function generateColorFromString(str: string | null): string {
-  if (!str) return AVATAR_COLORS[0]; // 默认颜色
-  
-  // 简化的哈希算法
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 3) - hash);
-  }
-  
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+    if (!str) return AVATAR_COLORS[0]; // 默认颜色
+
+    // 简化的哈希算法
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 3) - hash);
+    }
+
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
 // 获取用户名的首字母
 function getInitials(name: string | null): string {
-  if (!name) return '?';
-  // 直接返回首字符并大写（适用于中英文）
-  return name.charAt(0).toUpperCase();
+    if (!name) return '?';
+    // 直接返回首字符并大写（适用于中英文）
+    return name.charAt(0).toUpperCase();
 }
 
-export function PList(z: PListProps) {
+export function PList(a: Context, z: PListProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>
@@ -106,11 +107,11 @@ export function PList(z: PListProps) {
         </style>
     `);
     return html`
-${Header(z)}
+${Header(a, z)}
 
 <div class="container mx-auto max-w-5xl lg:px-0">
     <div class="flex flex-col gap-4">
-        ${z.data.map(item => html`
+        ${z.data.map(async item => html`
             <div id="p${item.pid}" class="card bg-base-100 shadow-sm">
                 <div class="card-body p-4">
                     ${item.quote_name ? html`
@@ -120,7 +121,7 @@ ${Header(z)}
                             <div class="text-sm opacity-70">引用</div>
                         </div>
                         <div class="text-sm opacity-80 break-all break-words hyphens-auto">
-                            ${raw(HTMLText.all(item.quote_content, 100))}
+                            ${raw(await HTMLText.all(item.quote_content, 100))}
                         </div>
                     </blockquote>
                     ` : ''}
@@ -189,7 +190,7 @@ ${Header(z)}
             <div class="flex flex-wrap gap-1">
                 ${z.pagination.map(item => html`
                     ${item ? html`
-                        <a href="/t/${z.thread.tid}/${item}${URLQuery(z.a)}" class="btn btn-sm ${item == z.page ? 'btn-active' : 'btn-ghost'}">${item}</a>
+                        <a href="/t/${z.thread.tid}/${item}${URLQuery(a)}" class="btn btn-sm ${item == z.page ? 'btn-active' : 'btn-ghost'}">${item}</a>
                     ` : html`
                         <span class="btn btn-sm btn-ghost">...</span>
                     `}
@@ -315,6 +316,6 @@ window.addEventListener("load", function () {
 });
 </script>
 
-${Footer(z)}
+${Footer(a, z)}
     `;
 }

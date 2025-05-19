@@ -1,19 +1,20 @@
+import { Context } from "hono";
 import { html } from "hono/html";
+import { Props } from "../query/base";
 import { Header, Footer } from "./Common"
-import { Props } from "../app/base";
 
-export function MList(z: Props) {
-  if (!z.i) {
-    // 当用户未登录时，自动重定向到登录页面
-    return html`
+export function MList(a: Context, z: Props) {
+    if (!z.i) {
+        // 当用户未登录时，自动重定向到登录页面
+        return html`
     <script>
       window.location.href = '/auth';
     </script>
     `;
-  }
-  
-  return html`
-${Header(z)}
+    }
+
+    return html`
+${Header(a, z)}
 
 <div class="container mx-auto max-w-5xl lg:px-0 py-6">
     <div class="flex flex-col gap-4">
@@ -333,6 +334,6 @@ mFetch();
 document.getElementById('load').addEventListener('click', mFetch);
 </script>
 
-${Footer(z)}
+${Footer(a, z)}
 `;
 }
