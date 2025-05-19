@@ -12,8 +12,10 @@ dist/
 .idea/shelf
 
 # deps
-node_modules/
+bun.lock
+package-lock.json
 .wrangler
+node_modules/
 
 # env
 .env
