@@ -161,28 +161,28 @@ export async function HTMLFilter(html: string | null | undefined) {
     }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
 }
 
-export class HTMLText {
-    private static stop: number;
-    private static first: boolean;
-    private static value: string;
-    private static rewriter = new HTMLRewriter().on('*', {
+export async function HTMLText(html: string | null | undefined, len = 0, first = false) {
+    if (!html) { return ''; }
+    let stop = 0;
+    let text = '';
+    await new HTMLRewriter().on('*', {
         element: e => {
-            if (this.stop == 2) { return; }
+            if (stop == 2) { return; }
             if (['p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(e.tagName)) {
-                this.value += ' '
+                text += ' '
                 // 如果只取首行 且遇到换行符 则标记预备停止
-                if (this.first && !this.stop) {
-                    this.stop = 1;
+                if (first && !stop) {
+                    stop = 1;
                     e.onEndTag(() => {
-                        this.stop = this.value.trim() ? 2 : 0;
+                        stop = text.trim() ? 2 : 0;
                     })
                 }
             }
         },
         text: t => {
-            if (this.stop == 2) { return; }
+            if (stop == 2) { return; }
             if (t.text) {
-                this.value += t.text
+                text += t.text
                     .replace(/&amp;/g, "&")
                     .replace(/&lt;/g, "<")
                     .replace(/&gt;/g, ">")
@@ -192,37 +192,20 @@ export class HTMLText {
                     .trim()
             }
         }
-    });
-    public static async run(html: string | null | undefined, len: number) {
-        if (!html) { return '...' }
-        this.stop = 0;
-        this.value = '';
-        await this.rewriter.transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
-        let text = this.value.trim();
-        if (len > 0) {
-            const lenOld = text.length
-            if (lenOld > len) {
-                text = text.slice(0, len - 3) + '...'
-            }
+    }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
+    if (len > 0) {
+        const lenOld = text.length
+        if (lenOld > len) {
+            text = text.slice(0, len - 3) + '...'
         }
-        return text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, "&#39;")
-            .trim() || '...'
     }
-    // 取首行
-    public static async one(html: string | null | undefined, len = 0) {
-        this.first = true;
-        return await this.run(html, len)
-    }
-    // 取全文
-    public static async all(html: string | null | undefined, len = 0) {
-        this.first = false;
-        return await this.run(html, len)
-    }
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, "&#39;")
+        .trim() || '...'
 }
 
 export function URLQuery(a: Context) {

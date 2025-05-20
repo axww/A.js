@@ -77,7 +77,7 @@ export async function pSave(a: Context) {
     if (eid < 0) { // 编辑
         const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
-        const subject = await HTMLText.one(raw, 140)
+        const subject = await HTMLText(raw, 140, true)
         const post = (await DB(a)
             .update(Post)
             .set({
@@ -160,7 +160,7 @@ export async function pSave(a: Context) {
         if (time - lastPostTime(i.uid) < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
-        const subject = await HTMLText.one(raw, 140)
+        const subject = await HTMLText(raw, 140, true)
         const post = (await DB(a)
             .insert(Post)
             .values({
