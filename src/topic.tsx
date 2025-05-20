@@ -1,7 +1,7 @@
 import { Context } from "hono";
-import { Props, DB, Thread, User } from "../src/base";
-import { Auth, Config, Pagination } from "../src/core";
-import { and, desc, eq, getTableColumns, or } from 'drizzle-orm';
+import { Props, DB, Thread, User } from "./base";
+import { Auth, Config, Pagination } from "./core";
+import { and, desc, eq, getTableColumns, or, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { TList } from "../render/TList";
 
@@ -51,4 +51,21 @@ export async function tList(a: Context) {
     const pagination = Pagination(page_size_t, threads, page, 2)
     const title = await Config.get<string>(a, 'site_name')
     return a.html(TList(a, { i, uid, page, pagination, data, title }));
+}
+
+export async function tPeak(a: Context) {
+    const i = await Auth(a)
+    if (!i || i.gid != 1) { return a.text('401', 401) }
+    const tid = parseInt(a.req.param('tid') ?? '0')
+    const post = (await DB(a)
+        .update(Thread)
+        .set({
+            is_top: sql`CASE WHEN ${Thread.is_top} = 0 THEN 1 ELSE 0 END`,
+        })
+        .where(eq(Thread.tid, tid))
+        .returning()
+    )?.[0]
+    // 如果无法置顶则报错
+    if (!post) { return a.text('410:gone', 410) }
+    return a.text('ok')
 }

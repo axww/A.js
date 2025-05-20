@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { PEditProps } from "../query/pEdit";
-import { Header, Footer } from "./Common"
+import { Header, Footer } from "./Common";
+import { PEditProps } from "../src/post";
 
 export function PEdit(a: Context, z: PEditProps) {
     z.head_external = raw(`

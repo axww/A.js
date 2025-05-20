@@ -1,10 +1,71 @@
 import { Context } from "hono";
-import { DB, Post, Thread, User } from "../src/base";
-import { Auth, Config, HTMLFilter, HTMLText, IsAdmin } from "../src/core";
-import { mAdd, mDel } from "./mCore";
-import { cookieReset, lastPostTime } from "./uCore";
-import { and, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";
+import { raw } from "hono/html";
+import { and, desc, eq, gt, inArray, ne, or, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
+import { DB, Post, Thread, User, Props } from "./base";
+import { Auth, Config, Pagination, HTMLFilter, HTMLText, IsAdmin } from "./core";
+import { mAdd, mDel } from "./message";
+import { cookieReset, lastPostTime } from "./user";
+import { PEdit } from "../render/PEdit";
+import { PList } from "../render/PList";
+
+export interface PEditProps extends Props {
+    eid: number,
+    content: string,
+    thread?: {
+        tid: number,
+        subject: string
+    }
+}
+
+export interface PListProps extends Props {
+    thread: typeof Thread.$inferSelect
+    page: number
+    pagination: number[]
+    data: (typeof Post.$inferSelect & {
+        name: string | null;
+        credits: number | null;
+        gid: number | null;
+        quote_content: string | null;
+        quote_name: string | null;
+    })[]
+}
+
+export async function pEdit(a: Context) {
+    const i = await Auth(a)
+    if (!i) { return a.text('401', 401) }
+    const time = Math.floor(Date.now() / 1000)
+    const eid = parseInt(a.req.param('eid') ?? '0')
+    let title = ""
+    let content = ''
+    let thread: { tid: number, subject: string } | undefined
+    if (eid < 0) {
+        title = "编辑"
+        const post = (await DB(a)
+            .select()
+            .from(Post)
+            .where(and(
+                eq(Post.pid, -eid),
+                eq(Post.access, 0),
+                IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能编辑
+                IsAdmin(i, undefined, gt(sql`${Post.time} + 604800`, time)), // 7天后禁止编辑
+            ))
+        )?.[0]
+        if (!post) { return a.text('403', 403) }
+        content = raw(post.content) ?? ''
+        if (post.tid) {
+            thread = { tid: post.tid, subject: '' }
+        }
+    } else if (eid > 0) {
+        title = "回复"
+        thread = { tid: eid, subject: '' }
+    } else {
+        title = "发表"
+        thread = undefined
+    }
+    const edit_forbid = true;
+    return a.html(PEdit(a, { i, title, eid, content, edit_forbid, thread }));
+}
 
 export async function pSave(a: Context) {
     const i = await Auth(a)
@@ -338,4 +399,74 @@ export async function pQuickReply(a: Context) {
         console.error('Quick reply error:', error)
         return a.json({ success: false, message: '服务器错误' }, 500)
     }
+}
+
+export async function pList(a: Context) {
+    const i = await Auth(a)
+    const tid = parseInt(a.req.param('tid'))
+    const thread = (await DB(a)
+        .select()
+        .from(Thread)
+        .where(and(
+            eq(Thread.tid, tid),
+            eq(Thread.access, 0),
+        ))
+    )?.[0]
+    if (!thread) { return a.notFound() }
+    const page = parseInt(a.req.param('page') ?? '0') || 1
+    const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
+    const QuotePost = alias(Post, 'QuotePost')
+    const QuoteUser = alias(User, 'QuoteUser')
+    const data = await DB(a)
+        .select({
+            ...getTableColumns(Post),
+            name: User.name,
+            credits: User.credits,
+            gid: User.gid,
+            quote_content: QuotePost.content,
+            quote_name: QuoteUser.name,
+        })
+        .from(Post)
+        .where(and(
+            // access
+            eq(Post.access, 0),
+            // tid - pid
+            or(
+                and(eq(Post.tid, 0), eq(Post.pid, tid)),
+                eq(Post.tid, tid),
+            ),
+        ))
+        .leftJoin(User, eq(Post.uid, User.uid))
+        .leftJoin(QuotePost, and(ne(Post.quote_pid, Post.tid), eq(QuotePost.pid, Post.quote_pid), eq(QuotePost.access, 0)))
+        .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
+        .orderBy(asc(Post.pid))
+        .offset((page - 1) * page_size_p)
+        .limit(page_size_p)
+    const pagination = Pagination(page_size_p, thread.posts, page, 2)
+    const title = thread.subject
+    const edit_forbid = (thread.last_time + 604800) < Math.floor(Date.now() / 1000)
+    return a.html(PList(a, { i, thread, page, pagination, data, title, edit_forbid }))
+}
+
+export async function pJump(a: Context) {
+    const tid = parseInt(a.req.query('tid') ?? '0')
+    const pid = parseInt(a.req.query('pid') ?? '0')
+    const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
+    const data = (await DB(a)
+        .select({ count: count() })
+        .from(Post)
+        .where(and(
+            // access
+            eq(Post.access, 0),
+            // tid - pid
+            or(
+                and(eq(Post.tid, 0), eq(Post.pid, tid)),
+                eq(Post.tid, tid),
+            ),
+            lte(Post.pid, pid),
+        ))
+        .orderBy(asc(Post.pid))
+    )?.[0]
+    const page = Math.ceil(data.count / page_size_p)
+    return a.redirect('/t/' + tid + '/' + page + '?' + pid, 301)
 }

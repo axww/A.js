@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { html } from "hono/html";
 import { Props } from "../src/base";
-import { Header, Footer } from "./Common"
+import { Header, Footer } from "./Common";
 
 export function MList(a: Context, z: Props) {
     if (!z.i) {

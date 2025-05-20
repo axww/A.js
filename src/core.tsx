@@ -3,7 +3,7 @@ import { sign, verify } from "hono/jwt";
 import { getCookie, setCookie } from "hono/cookie";
 import { eq } from 'drizzle-orm';
 import { DB, Conf, I, User } from "./base";
-import { cookieReset } from "../query/uCore";
+import { cookieReset } from "../src/user";
 
 export class Maps {
     // 存储 map 的内存容器

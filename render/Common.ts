@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Props } from "../src/base";
 import { Config } from "../src/core";
-import { unreadMessage } from "../query/uCore";
+import { unreadMessage } from "../src/user";
 
 export async function Header(a: Context, z: Props) {
   const siteName = await Config.get<string>(a, 'site_name');

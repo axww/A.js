@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { html } from "hono/html";
+import { Header, Footer } from "./Common";
 import { Props } from "../src/base";
-import { Header, Footer } from "./Common"
 
-export function IConf(a: Context, z: Props) {
+export function UConf(a: Context, z: Props) {
   z.i = z.i! // 非空断言
   return html`
 ${Header(a, z)}

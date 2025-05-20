@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
+import { Header, Footer } from "./Common";
 import { HTMLText, URLQuery } from "../src/core";
-import { PListProps } from "../query/pList";
-import { Header, Footer } from "./Common"
+import { PListProps } from "../src/post";
 
 // 预定义颜色调色板（移至顶层避免重复创建）
 const AVATAR_COLORS = [

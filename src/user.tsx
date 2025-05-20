@@ -1,11 +1,71 @@
 import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { deleteCookie, setCookie } from "hono/cookie";
-import { DB, User } from "../src/base";
-import { Auth, Config, MD5, RandomString } from "../src/core";
-import { eq, or } from "drizzle-orm";
+import { and, eq, or, count } from "drizzle-orm";
+import { DB, User, Message } from "./base";
+import { Auth, Config, Maps, MD5, RandomString } from "./core";
+import { UAuth } from "../render/UAuth";
+import { UConf } from "../render/UConf";
 
-export async function iLogin(a: Context) {
+// 设置用户COOKIE为待更新
+export async function cookieReset(uid: number, reset: boolean | undefined = undefined) {
+    const map = Maps.get<number, boolean>('cookieReset');
+    if (reset === undefined) {
+        return map.get(uid);
+    }
+    map.set(uid, reset);
+    return reset;
+}
+
+// 用户未读回复计数
+export async function unreadMessage(a: Context, uid: number, change: number | null = 0) {
+    const map = Maps.get<number, number>('unreadMessage');
+    let sum = map.get(uid);
+    // 消息初始化
+    if (sum === undefined) {
+        sum = (await DB(a)
+            .select({ count: count(Message.pid) })
+            .from(Message)
+            .where(and(
+                eq(Message.uid, uid),
+                eq(Message.type, 1),
+            ))
+            .limit(1)
+        )?.[0].count || 0;
+        map.set(uid, sum)
+    }
+    // 消息数量改变
+    if (change !== 0) {
+        sum = change ? (sum + change) : 0
+        map.set(uid, sum);
+    }
+    return sum;
+}
+
+// 用户上次发帖时间（防止频繁发帖）
+export function lastPostTime(uid: number, time: number = 0) {
+    const map = Maps.get<number, number>('lastPostTime');
+    if (time) {
+        map.set(uid, time);
+        return time;
+    }
+    return (map.get(uid) || 0);
+}
+
+export async function uAuth(a: Context) {
+    const i = await Auth(a)
+    const title = "登录"
+    return a.html(UAuth(a, { i, title }));
+}
+
+export async function uConf(a: Context) {
+    const i = await Auth(a)
+    if (!i) { return a.text('401', 401) }
+    const title = "设置"
+    return a.html(UConf(a, { i, title }));
+}
+
+export async function uLogin(a: Context) {
     const body = await a.req.formData();
     const acct = body.get('acct')?.toString().toLowerCase() // 登录凭证 邮箱 或 昵称
     const pass = body.get('pass')?.toString();
@@ -36,12 +96,12 @@ export async function iLogin(a: Context) {
     }
 }
 
-export async function iLogout(a: Context) {
+export async function uLogout(a: Context) {
     deleteCookie(a, 'JWT')
     return a.text('ok')
 }
 
-export async function iRegister(a: Context) {
+export async function uRegister(a: Context) {
     const body = await a.req.formData()
     const acct = body.get('acct')?.toString().toLowerCase() ?? ''
     const pass = body.get('pass')?.toString() ?? ''
@@ -66,7 +126,7 @@ export async function iRegister(a: Context) {
     return a.text('ok')
 }
 
-export async function iSave(a: Context) {
+export async function uSave(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     const body = await a.req.formData()

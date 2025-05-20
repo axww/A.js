@@ -1,10 +1,10 @@
 import { Context } from "hono";
 import { html } from "hono/html";
+import { Header, Footer } from "./Common";
 import { Props } from "../src/base";
 import { Config } from "../src/core";
-import { Header, Footer } from "./Common"
 
-export async function IAuth(a: Context, z: Props) {
+export async function UAuth(a: Context, z: Props) {
   return html`
 ${Header(a, z)}
 

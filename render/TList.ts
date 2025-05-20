@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { TListProps } from "../query/tList";
+import { Header, Footer } from "./Common";
 import { URLQuery } from "../src/core";
-import { Header, Footer } from "./Common"
+import { TListProps } from "../src/topic";
 
 export function TList(a: Context, z: TListProps) {
     return html`
