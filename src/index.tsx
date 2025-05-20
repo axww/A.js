@@ -4,7 +4,7 @@ import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
 import { _mClear, _mList, _mRead, mList } from './message';
 import { pJump, pEdit, pList, pOmit, pSave, pQuickReply } from './post';
-import { tList, tPeak } from './topic';
+import { tList, tPeak } from './thread';
 import { uAuth, uLogin, uLogout, uRegister, uConf, uSave } from './user';
 
 const app = new Hono();

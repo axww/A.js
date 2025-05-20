@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
 import { URLQuery } from "../src/core";
-import { TListProps } from "../src/topic";
+import { TListProps } from "../src/thread";
 
 export function TList(a: Context, z: TListProps) {
     return html`
