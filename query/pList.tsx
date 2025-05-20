@@ -1,6 +1,6 @@
 import { Context } from "hono";
-import { Props, DB, Post, Thread, User } from "./base";
-import { Auth, Config, Pagination } from "./core";
+import { Props, DB, Post, Thread, User } from "../src/base";
+import { Auth, Config, Pagination } from "../src/core";
 import { asc, eq, or, getTableColumns, and, ne } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { PList } from "../render/PList";

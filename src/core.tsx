@@ -3,7 +3,7 @@ import { sign, verify } from "hono/jwt";
 import { getCookie, setCookie } from "hono/cookie";
 import { eq } from 'drizzle-orm';
 import { DB, Conf, I, User } from "./base";
-import { cookieReset } from "./uCore";
+import { cookieReset } from "../query/uCore";
 
 export class Maps {
     // 存储 map 的内存容器
@@ -245,4 +245,10 @@ export function RandomString(length: number = 16): string {
         result += chars[array[i] % chars.length]; // 确保字符范围只在 chars 内
     }
     return result;
+}
+
+export async function MD5(str: string) {
+    return Array
+        .from(new Uint8Array(await crypto.subtle.digest("MD5", new TextEncoder().encode(str))))
+        .map(b => b.toString(16).padStart(2, "0")).join("")
 }

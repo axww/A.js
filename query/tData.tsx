@@ -1,6 +1,6 @@
 import { Context } from "hono";
-import { DB, Thread } from "./base";
-import { Auth } from "./core";
+import { DB, Thread } from "../src/base";
+import { Auth } from "../src/core";
 import { eq, sql } from "drizzle-orm";
 
 export async function tPeak(a: Context) {

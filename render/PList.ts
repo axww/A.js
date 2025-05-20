@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
-import { HTMLText, URLQuery } from "../query/core";
+import { HTMLText, URLQuery } from "../src/core";
 import { PListProps } from "../query/pList";
 import { Header, Footer } from "./Common"
 

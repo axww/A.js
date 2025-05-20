@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { Auth } from "./core";
+import { Auth } from "../src/core";
 import { MList } from "../render/MList";
 
 export async function mList(a: Context) {

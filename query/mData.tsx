@@ -1,6 +1,6 @@
 import { Context } from "hono";
-import { DB, Message, Post, User } from "./base";
-import { Auth, HTMLText } from "./core";
+import { DB, Message, Post, User } from "../src/base";
+import { Auth, HTMLText } from "../src/core";
 import { mClear, mRead } from "./mCore";
 import { alias } from "drizzle-orm/sqlite-core";
 import { and, desc, eq, inArray, lt, sql } from 'drizzle-orm';

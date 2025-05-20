@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { Auth } from "./core";
+import { Auth } from "../src/core";
 import { IConf } from "../render/IConf";
 
 export async function iConf(a: Context) {

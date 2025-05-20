@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../query/base";
+import { Props } from "../src/base";
 import { Header, Footer } from "./Common"
 
 export function IConf(a: Context, z: Props) {

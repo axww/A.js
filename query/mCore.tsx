@@ -1,5 +1,5 @@
 import { and, eq, inArray } from "drizzle-orm";
-import { DB, Message } from "./base";
+import { DB, Message } from "../src/base";
 import { unreadMessage } from "./uCore";
 import { Context } from "hono";
 

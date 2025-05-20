@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { html } from "hono/html";
-import { Props } from "../query/base";
-import { Config } from "../query/core";
+import { Props } from "../src/base";
+import { Config } from "../src/core";
 import { Header, Footer } from "./Common"
 
 export async function IAuth(a: Context, z: Props) {

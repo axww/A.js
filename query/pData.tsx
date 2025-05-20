@@ -1,6 +1,6 @@
 import { Context } from "hono";
-import { DB, Post, Thread, User } from "./base";
-import { Auth, Config, HTMLFilter, HTMLText, IsAdmin } from "./core";
+import { DB, Post, Thread, User } from "../src/base";
+import { Auth, Config, HTMLFilter, HTMLText, IsAdmin } from "../src/core";
 import { mAdd, mDel } from "./mCore";
 import { cookieReset, lastPostTime } from "./uCore";
 import { and, desc, eq, gt, inArray, ne, or, sql } from "drizzle-orm";

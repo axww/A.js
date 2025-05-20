@@ -1,6 +1,6 @@
 import { and, eq, count } from "drizzle-orm";
-import { DB, Message } from "./base";
-import { Maps } from "./core";
+import { DB, Message } from "../src/base";
+import { Maps } from "../src/core";
 import { Context } from "hono";
 
 // 设置用户COOKIE为待更新
