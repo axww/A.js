@@ -35,10 +35,10 @@ export async function _mList(a: Context) {
         .leftJoin(QuotePost, eq(QuotePost.pid, sql`CASE WHEN ${Post.quote_pid} = 0 THEN ${Post.tid} ELSE ${Post.quote_pid} END`))
         .orderBy(desc(Message.pid))
         .limit(10)
-    data.forEach(async function (row) {
+    await Promise.all(data.map(async function (row) {
         row.quote_content = await HTMLText(row.quote_content, 300);
         row.post_content = await HTMLText(row.post_content, 300);
-    })
+    }))
     return a.json(data)
 }
 
