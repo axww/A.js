@@ -44,7 +44,7 @@ export async function tList(a: Context) {
         ))
         .leftJoin(User, eq(Thread.uid, User.uid))
         .leftJoin(LastUser, eq(Thread.last_uid, LastUser.uid))
-        .orderBy(...(uid ? [desc(Thread.time)] : [desc(Thread.is_top), desc(Thread.last_time)]))
+        .orderBy(...(uid ? [desc(Thread.access), desc(Thread.uid), desc(Thread.time)] : [desc(Thread.access), desc(Thread.is_top), desc(Thread.last_time)]))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
     const threads = uid ? (user?.threads || 0) : (await Config.get<number>(a, 'threads') || 0)

@@ -227,7 +227,7 @@ export async function pOmit(a: Context) {
                     eq(Post.tid, post.tid),
                 ),
             ))
-            .orderBy(desc(Post.pid))
+            .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
             .limit(1)
         )?.[0]
         await DB(a)
@@ -439,7 +439,7 @@ export async function pList(a: Context) {
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.quote_pid, Post.tid), eq(QuotePost.pid, Post.quote_pid), eq(QuotePost.access, 0)))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.pid))
+        .orderBy(asc(Post.access), asc(Post.tid), asc(Post.pid))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     const pagination = Pagination(page_size_p, thread.posts, page, 2)
@@ -465,7 +465,7 @@ export async function pJump(a: Context) {
             ),
             lte(Post.pid, pid),
         ))
-        .orderBy(asc(Post.pid))
+        .orderBy(asc(Post.access), asc(Post.tid), asc(Post.pid))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + pid, 301)
