@@ -40,7 +40,7 @@ export async function tList(a: Context) {
         .from(Thread)
         .where(and(
             eq(Thread.access, 0),
-            uid ? eq(Thread.uid, uid) : or(eq(Thread.is_top, 1), eq(Thread.is_top, 0)),
+            uid ? eq(Thread.uid, uid) : undefined,
         ))
         .leftJoin(User, eq(Thread.uid, User.uid))
         .leftJoin(LastUser, eq(Thread.last_uid, LastUser.uid))
