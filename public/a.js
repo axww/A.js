@@ -1,10 +1,14 @@
 // 发表帖子
-async function post(eid) {
+async function post(eid, reload = false) {
     const data = new FormData();
     data.set('content', quill.getSemanticHTML());
     const result = await fetch(new Request('/e/' + eid, { method: 'POST', body: data }))
     if (result.ok) {
-        window.location = document.referrer
+        if (reload) {
+            window.location.reload()
+        } else {
+            window.location = document.referrer
+        }
     } else {
         const errorMsg = await result.text();
 

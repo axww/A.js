@@ -104,6 +104,26 @@ export function PList(a: Context, z: PListProps) {
                 position: relative;
                 top: 1px;
             }
+            .ql-toolbar.ql-snow {
+                border-top-left-radius: 0.5rem;
+                border-top-right-radius: 0.5rem;
+                background: #f8f9fa;
+                border-color: #e2e8f0;
+            }
+            .ql-container.ql-snow {
+                border-bottom-left-radius: 0.5rem;
+                border-bottom-right-radius: 0.5rem;
+                border-color: #e2e8f0;
+            }
+            .ql-editor,.ql-container {
+                height: 260px;
+            }
+            .ql-container {
+                padding: 0;
+            }
+            .ql-editor img {
+                padding: 4px 0;
+            }
         </style>
     `);
     return html`
@@ -201,11 +221,10 @@ ${Header(a, z)}
     
     ${z.i ? html`
         <div class="card bg-base-100 shadow-sm mt-8">
-            <div class="card-body p-4">
-                <h3 class="text-lg font-semibold mb-2">快速回复</h3>
+            <div class="card p-4">
                 <div name="content"></div>
                 <div class="flex justify-end mt-2">
-                    <button class="btn btn-primary" onclick="post(${z.thread.tid})">
+                    <button class="btn btn-primary" onclick="post(${z.thread.tid},true)">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
