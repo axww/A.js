@@ -160,10 +160,11 @@ export async function pSave(a: Context) {
             })
             .returning()
         )?.[0]
+        post.tid = post.pid
         await DB(a)
             .update(Post)
             .set({
-                tid: post.pid,
+                tid: post.tid,
             })
             .where(eq(Post.pid, post.pid))
         await DB(a)
