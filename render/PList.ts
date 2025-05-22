@@ -203,11 +203,9 @@ ${Header(a, z)}
         <div class="card bg-base-100 shadow-sm mt-8">
             <div class="card-body p-4">
                 <h3 class="text-lg font-semibold mb-2">快速回复</h3>
-                <div class="form-control">
-                    <textarea id="quickReplyContent" class="textarea textarea-bordered h-24" placeholder="输入简短回复内容..."></textarea>
-                </div>
+                <div name="content"></div>
                 <div class="flex justify-end mt-2">
-                    <button id="submitQuickReply" class="btn btn-primary">
+                    <button class="btn btn-primary" onclick="post(${z.thread.tid})">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
@@ -218,6 +216,19 @@ ${Header(a, z)}
         </div>
     ` : ''}
 </div>
+
+<script src="/quill.js"></script>
+<script>
+    const quill = new Quill('[name="content"]', {
+        modules: {
+            toolbar: [{ 'header': [1, 2, 3, 4, 5, 6, false] }, 'bold', 'italic', 'underline', 'code-block', 'link', 'image', 'clean']
+        },
+        theme: 'snow',
+        placeholder: '请输入内容...'
+    });
+    const toolbar = quill.getModule('toolbar');
+    toolbar.addHandler('image', upload);
+</script>
 
 <script>
 window.addEventListener("load", function () {
@@ -259,60 +270,7 @@ window.addEventListener("load", function () {
             modal.style.display = 'none';
         }
     });
-    
-    // 快速回复功能
-    const quickReplyBtn = document.getElementById('submitQuickReply');
-    if (quickReplyBtn) {
-        quickReplyBtn.addEventListener('click', function() {
-            const content = document.getElementById('quickReplyContent').value.trim();
-            if (!content) {
-                alert('请输入回复内容');
-                return;
-            }
-            
-            // 显示加载状态
-            quickReplyBtn.classList.add('btn-disabled');
-            quickReplyBtn.innerHTML = '<span class="loading loading-spinner"></span> 发送中...';
-            
-            // 获取CSRF令牌
-            const csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
-            const csrfToken = csrfMetaTag ? csrfMetaTag.getAttribute('content') : '';
-            
-            // 发送快速回复请求
-            fetch('/api/quick-reply', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken || ''
-                },
-                body: JSON.stringify({
-                    tid: ${z.thread.tid},
-                    content: content
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // 成功后刷新页面显示新回复
-                    window.location.reload();
-                } else {
-                    alert(data.message || '回复失败，请稍后再试');
-                    resetButtonState();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('回复失败，请稍后再试');
-                resetButtonState();
-            });
-            
-            // 重置按钮状态函数
-            function resetButtonState() {
-                quickReplyBtn.classList.remove('btn-disabled');
-                quickReplyBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg> 发送';
-            }
-        });
-    }
+
 });
 </script>
 

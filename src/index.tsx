@@ -3,7 +3,7 @@ import { csrf } from 'hono/csrf';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
 import { _mClear, _mList, _mRead, mList } from './message';
-import { pJump, pEdit, pList, pOmit, pSave, pQuickReply } from './post';
+import { pJump, pEdit, pList, pOmit, pSave } from './post';
 import { tList, tPeak } from './thread';
 import { uAuth, uLogin, uLogout, uRegister, uConf, uSave } from './user';
 
@@ -18,7 +18,6 @@ app.put('/t/:tid{[-0-9]+}?', tPeak);
 app.get('/e/:eid{[-0-9]+}?', pEdit);
 app.post('/e/:eid{[-0-9]+}?', pSave);
 app.delete('/e/:eid{[-0-9]+}?', pOmit);
-app.post('/api/quick-reply', pQuickReply);
 
 app.get('/i', uConf);
 app.post('/i', uSave);
