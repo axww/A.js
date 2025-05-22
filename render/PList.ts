@@ -149,7 +149,7 @@ ${Header(a, z)}
                         ${(z.i) ? html`
                             <div class="flex-1"></div>
                             <div class="flex flex-wrap gap-1">
-                                ${(z.i.gid == 1 && !item.tid) ? html`
+                                ${(z.i.gid == 1 && item.pid == item.tid) ? html`
                                     <button class="btn btn-sm btn-ghost ${z.thread.is_top ? 'btn-active' : ''}" onclick="pin(${item.pid});">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />

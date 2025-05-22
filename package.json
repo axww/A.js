@@ -13,11 +13,11 @@
     "hono": "^4.7.10"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250521.0",
-    "@hono/vite-build": "^1.6.1",
+    "@cloudflare/workers-types": "^4.20250522.0",
+    "@hono/vite-build": "^1.6.2",
     "@hono/vite-dev-server": "^0.19.1",
     "drizzle-kit": "^0.31.1",
     "vite": "^6.3.5",
-    "wrangler": "^4.16.0"
+    "wrangler": "^4.16.1"
   }
 }

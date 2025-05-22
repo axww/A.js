@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { raw } from "hono/html";
-import { and, desc, eq, gt, inArray, ne, or, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, ne, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, Thread, User, Props } from "./base";
 import { Auth, Config, Pagination, HTMLFilter, HTMLText, IsAdmin } from "./core";
@@ -12,10 +12,6 @@ import { PList } from "../render/PList";
 export interface PEditProps extends Props {
     eid: number,
     content: string,
-    thread?: {
-        tid: number,
-        subject: string
-    }
 }
 
 export interface PListProps extends Props {
@@ -38,7 +34,6 @@ export async function pEdit(a: Context) {
     const eid = parseInt(a.req.param('eid') ?? '0')
     let title = ""
     let content = ''
-    let thread: { tid: number, subject: string } | undefined
     if (eid < 0) {
         title = "编辑"
         const post = (await DB(a)
@@ -53,18 +48,13 @@ export async function pEdit(a: Context) {
         )?.[0]
         if (!post) { return a.text('403', 403) }
         content = raw(post.content) ?? ''
-        if (post.tid) {
-            thread = { tid: post.tid, subject: '' }
-        }
     } else if (eid > 0) {
         title = "回复"
-        thread = { tid: eid, subject: '' }
     } else {
         title = "发表"
-        thread = undefined
     }
     const edit_forbid = true;
-    return a.html(PEdit(a, { i, title, eid, content, edit_forbid, thread }));
+    return a.html(PEdit(a, { i, title, eid, content, edit_forbid }));
 }
 
 export async function pSave(a: Context) {
@@ -92,13 +82,13 @@ export async function pSave(a: Context) {
             .returning()
         )?.[0]
         if (!post) { return a.text('403', 403) }
-        if (!post.tid) {
+        if (post.pid == post.tid) {
             await DB(a)
                 .update(Thread)
                 .set({
                     subject,
                 })
-                .where(eq(Thread.tid, post.pid))
+                .where(eq(Thread.tid, post.tid))
         }
         return a.text('ok')
     } else if (eid > 0) { // 回复
@@ -122,7 +112,7 @@ export async function pSave(a: Context) {
                 last_time: time,
             })
             .where(and(
-                eq(Thread.tid, quote.tid ? quote.tid : quote.pid),
+                eq(Thread.tid, quote.tid),
                 gt(sql`${Thread.last_time} + 604800`, time), // 7天后禁止回复
             ))
             .returning()
@@ -132,7 +122,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .insert(Post)
             .values({
-                tid: quote.tid ? quote.tid : quote.pid,
+                tid: quote.tid,
                 uid: i.uid,
                 time,
                 quote_pid: quote.pid,
@@ -161,38 +151,47 @@ export async function pSave(a: Context) {
         const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
         const subject = await HTMLText(raw, 140, true)
-        const post = (await DB(a)
-            .insert(Post)
-            .values({
-                uid: i.uid,
-                time,
-                content,
-            })
-            .returning()
-        )?.[0]
-        await DB(a)
-            .insert(Thread)
-            .values({
-                tid: post.pid,
-                uid: i.uid,
-                subject,
-                time,
-                last_time: time,
-                posts: 1,
-            })
-        await DB(a)
-            .update(User)
-            .set({
-                threads: sql`${User.threads} + 1`,
-                posts: sql`${User.posts} + 1`,
-                credits: sql`${User.credits} + 2`,
-                golds: sql`${User.golds} + 2`,
-            })
-            .where(eq(User.uid, i.uid))
+        const pid: number = await DB(a).transaction(async (tx) => {
+            const post = (await tx
+                .insert(Post)
+                .values({
+                    uid: i.uid,
+                    time,
+                    content,
+                })
+                .returning()
+            )?.[0]
+            await tx
+                .update(Post)
+                .set({
+                    tid: post.pid,
+                })
+                .where(eq(Post.pid, post.pid))
+            await tx
+                .insert(Thread)
+                .values({
+                    tid: post.tid,
+                    uid: i.uid,
+                    subject,
+                    time,
+                    last_time: time,
+                    posts: 1,
+                })
+            await tx
+                .update(User)
+                .set({
+                    threads: sql`${User.threads} + 1`,
+                    posts: sql`${User.posts} + 1`,
+                    credits: sql`${User.credits} + 2`,
+                    golds: sql`${User.golds} + 2`,
+                })
+                .where(eq(User.uid, i.uid))
+            return pid;
+        });
         await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) + 1)
         lastPostTime(i.uid, time) // 记录发帖时间
         cookieReset(i.uid, true) // 刷新自己的COOKIE
-        return a.text(String(post.pid))
+        return a.text(String(pid))
     }
 }
 
@@ -213,52 +212,7 @@ export async function pOmit(a: Context) {
     )?.[0]
     // 如果无法删除则报错
     if (!post) { return a.text('410:gone', 410) }
-    if (post.tid) {
-        // 如果删的是Post
-        const last = (await DB(a)
-            .select()
-            .from(Post)
-            .where(and(
-                // access
-                eq(Post.access, 0),
-                // tid - pid
-                or(
-                    and(eq(Post.tid, 0), eq(Post.pid, post.tid)),
-                    eq(Post.tid, post.tid),
-                ),
-            ))
-            .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
-            .limit(1)
-        )?.[0]
-        await DB(a)
-            .update(Thread)
-            .set({
-                posts: sql`${Thread.posts} - 1`,
-                last_uid: last.tid ? last.uid : 0,
-                last_time: last.time,
-            })
-            .where(eq(Thread.tid, post.tid))
-        await DB(a)
-            .update(User)
-            .set({
-                posts: sql`${User.posts} - 1`,
-                credits: sql`${User.credits} - 1`,
-                golds: sql`${User.golds} - 1`,
-            })
-            .where(eq(User.uid, post.uid))
-        // 回复通知开始
-        const quote = (await DB(a)
-            .select()
-            .from(Post)
-            .where(eq(Post.pid, post.quote_pid))
-        )?.[0]
-        // 如果存在被回复帖 且回复的不是自己
-        if (quote && post.uid != quote.uid) {
-            // 未读 已读 消息都删
-            await mDel(a, quote.uid, [-1, 1], post.pid)
-        }
-        // 回复通知结束
-    } else {
+    if (post.pid == post.tid) {
         // 如果删的是Thread
         await DB(a)
             .update(Thread)
@@ -266,7 +220,7 @@ export async function pOmit(a: Context) {
                 access: 3,
             })
             .where(and(
-                eq(Thread.tid, post.pid), // thread首帖 post.pid=thread.tid post.tid=0
+                eq(Thread.tid, post.tid),
                 IsAdmin(i, undefined, eq(Thread.uid, i.uid)), // 管理和作者都能删除
             ))
         await DB(a)
@@ -291,7 +245,7 @@ export async function pOmit(a: Context) {
             .from(Post)
             .where(and(
                 inArray(Post.access, [0, 1, 2, 3]),
-                eq(Post.tid, post.pid),
+                eq(Post.tid, post.tid),
                 ne(Post.uid, QuotePost.uid),
             ))
             .leftJoin(QuotePost, eq(QuotePost.pid, Post.quote_pid))
@@ -301,6 +255,48 @@ export async function pOmit(a: Context) {
                 await mDel(a, post.quote_uid, [-1, 1], post.pid)
             }
         })
+        // 回复通知结束
+    } else {
+        // 如果删的是Post
+        const last = (await DB(a)
+            .select()
+            .from(Post)
+            .where(and(
+                // access
+                eq(Post.access, 0),
+                // tid
+                eq(Post.tid, post.tid),
+            ))
+            .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
+            .limit(1)
+        )?.[0]
+        await DB(a)
+            .update(Thread)
+            .set({
+                posts: sql`${Thread.posts} - 1`,
+                last_uid: (last.pid == last.tid) ? 0 : last.uid, // 仅剩顶楼时没有最后回复
+                last_time: last.time,
+            })
+            .where(eq(Thread.tid, post.tid))
+        await DB(a)
+            .update(User)
+            .set({
+                posts: sql`${User.posts} - 1`,
+                credits: sql`${User.credits} - 1`,
+                golds: sql`${User.golds} - 1`,
+            })
+            .where(eq(User.uid, post.uid))
+        // 回复通知开始
+        const quote = (await DB(a)
+            .select()
+            .from(Post)
+            .where(eq(Post.pid, post.quote_pid))
+        )?.[0]
+        // 如果存在被回复帖 且回复的不是自己
+        if (quote && post.uid != quote.uid) {
+            // 未读 已读 消息都删
+            await mDel(a, quote.uid, [-1, 1], post.pid)
+        }
         // 回复通知结束
     }
     return a.text('ok')
@@ -353,7 +349,7 @@ export async function pQuickReply(a: Context) {
                 last_time: time,
             })
             .where(and(
-                eq(Thread.tid, quote.tid ? quote.tid : quote.pid),
+                eq(Thread.tid, quote.tid),
                 gt(sql`${Thread.last_time} + 604800`, time), // 7天后禁止回复
             ))
             .returning()
@@ -367,7 +363,7 @@ export async function pQuickReply(a: Context) {
         const post = (await DB(a)
             .insert(Post)
             .values({
-                tid: quote.tid ? quote.tid : quote.pid,
+                tid: quote.tid,
                 uid: i.uid,
                 time,
                 content,
@@ -430,11 +426,8 @@ export async function pList(a: Context) {
         .where(and(
             // access
             eq(Post.access, 0),
-            // tid - pid
-            or(
-                and(eq(Post.tid, 0), eq(Post.pid, tid)),
-                eq(Post.tid, tid),
-            ),
+            // tid
+            eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.quote_pid, Post.tid), eq(QuotePost.pid, Post.quote_pid), eq(QuotePost.access, 0)))
@@ -458,11 +451,9 @@ export async function pJump(a: Context) {
         .where(and(
             // access
             eq(Post.access, 0),
-            // tid - pid
-            or(
-                and(eq(Post.tid, 0), eq(Post.pid, tid)),
-                eq(Post.tid, tid),
-            ),
+            // tid
+            eq(Post.tid, tid),
+            // pid
             lte(Post.pid, pid),
         ))
         .orderBy(asc(Post.access), asc(Post.tid), asc(Post.pid))
