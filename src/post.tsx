@@ -151,47 +151,44 @@ export async function pSave(a: Context) {
         const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
         const subject = await HTMLText(raw, 140, true)
-        const pid: number = await DB(a).transaction(async (tx) => {
-            const post = (await tx
-                .insert(Post)
-                .values({
-                    uid: i.uid,
-                    time,
-                    content,
-                })
-                .returning()
-            )?.[0]
-            await tx
-                .update(Post)
-                .set({
-                    tid: post.pid,
-                })
-                .where(eq(Post.pid, post.pid))
-            await tx
-                .insert(Thread)
-                .values({
-                    tid: post.tid,
-                    uid: i.uid,
-                    subject,
-                    time,
-                    last_time: time,
-                    posts: 1,
-                })
-            await tx
-                .update(User)
-                .set({
-                    threads: sql`${User.threads} + 1`,
-                    posts: sql`${User.posts} + 1`,
-                    credits: sql`${User.credits} + 2`,
-                    golds: sql`${User.golds} + 2`,
-                })
-                .where(eq(User.uid, i.uid))
-            return pid;
-        });
+        const post = (await DB(a)
+            .insert(Post)
+            .values({
+                uid: i.uid,
+                time,
+                content,
+            })
+            .returning()
+        )?.[0]
+        await DB(a)
+            .update(Post)
+            .set({
+                tid: post.pid,
+            })
+            .where(eq(Post.pid, post.pid))
+        await DB(a)
+            .insert(Thread)
+            .values({
+                tid: post.tid,
+                uid: i.uid,
+                subject,
+                time,
+                last_time: time,
+                posts: 1,
+            })
+        await DB(a)
+            .update(User)
+            .set({
+                threads: sql`${User.threads} + 1`,
+                posts: sql`${User.posts} + 1`,
+                credits: sql`${User.credits} + 2`,
+                golds: sql`${User.golds} + 2`,
+            })
+            .where(eq(User.uid, i.uid))
         await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) + 1)
         lastPostTime(i.uid, time) // 记录发帖时间
         cookieReset(i.uid, true) // 刷新自己的COOKIE
-        return a.text(String(pid))
+        return a.text(String(post.pid))
     }
 }
 
