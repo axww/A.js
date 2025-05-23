@@ -137,7 +137,7 @@ function upload() {
                 .then(json => {
                     if (!Object.keys(json).length || !json.success) { alert('Request Error'); return false; }
                     const range = quill.getSelection();
-                    quill.insertEmbed(range.index, 'image', 'https://i0.wp.com/' + json.data.display_url.substring(8));
+                    quill.insertEmbed(range.index, 'image', json.data.display_url);
                     quill.setSelection(range.index + 1);
                 })
                 .catch(error => {
