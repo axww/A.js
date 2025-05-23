@@ -45,7 +45,7 @@ export async function _mList(a: Context) {
 export async function _mClear(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    mClear(a, i.uid, 1);
+    await mClear(a, i.uid, 1);
     return a.json('ok')
 }
 
