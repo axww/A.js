@@ -12,7 +12,6 @@ dist/
 .idea/shelf
 
 # deps
-bun.lock
 package-lock.json
 .wrangler
 node_modules/

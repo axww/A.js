@@ -17,6 +17,11 @@ export const Conf = sqliteTable("conf", {
     value: text(),
 });
 
+export const Count_User_Thread = sqliteTable("count_user_thread", {
+    uid: integer().primaryKey(),
+    threads: integer().notNull().default(0),
+});
+
 export const Message = sqliteTable("message", {
     uid: integer().notNull().default(0), // 向哪个用户发送的消息
     type: integer().notNull().default(0), // 消息类别 1:回复提醒 -1:已读回复提醒
@@ -68,8 +73,6 @@ export const User = sqliteTable("user", {
     name: text().notNull().default('').unique(),
     hash: text().notNull().default(''),
     salt: text().notNull().default(''),
-    threads: integer().notNull().default(0),
-    posts: integer().notNull().default(0),
     credits: integer().notNull().default(0),
     golds: integer().notNull().default(0),
 });

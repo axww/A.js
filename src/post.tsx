@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { raw } from "hono/html";
 import { and, desc, eq, gt, inArray, ne, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { DB, Post, Thread, User, Props } from "./base";
+import { DB, Post, Thread, User, Props, Count_User_Thread } from "./base";
 import { Auth, Config, Pagination, HTMLFilter, HTMLText, IsAdmin } from "./core";
 import { mAdd, mDel } from "./message";
 import { cookieReset, lastPostTime } from "./user";
@@ -133,7 +133,6 @@ export async function pSave(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                posts: sql`${User.posts} + 1`,
                 credits: sql`${User.credits} + 1`,
                 golds: sql`${User.golds} + 1`,
             })
@@ -180,13 +179,20 @@ export async function pSave(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                threads: sql`${User.threads} + 1`,
-                posts: sql`${User.posts} + 1`,
                 credits: sql`${User.credits} + 2`,
                 golds: sql`${User.golds} + 2`,
             })
             .where(eq(User.uid, i.uid))
-        await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) + 1)
+        await DB(a)
+            .insert(Count_User_Thread)
+            .values([
+                { uid: i.uid, threads: 1 },
+                { uid: 0, threads: 1 },
+            ])
+            .onConflictDoUpdate({
+                target: Count_User_Thread.uid,
+                set: { threads: sql`${Count_User_Thread.threads} + 1` }
+            })
         lastPostTime(i.uid, time) // 记录发帖时间
         cookieReset(i.uid, true) // 刷新自己的COOKIE
         return a.text(String(post.pid))
@@ -224,13 +230,16 @@ export async function pOmit(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                threads: sql`${User.threads} - 1`,
-                posts: sql`${User.posts} - 1`,
                 credits: sql`${User.credits} - 2`,
                 golds: sql`${User.golds} - 2`,
             })
             .where(eq(User.uid, post.uid))
-        await Config.set(a, 'threads', (await Config.get<number>(a, 'threads') || 0) - 1)
+        await DB(a)
+            .update(Count_User_Thread)
+            .set({
+                threads: sql`${Count_User_Thread.threads} - 1`,
+            })
+            .where(inArray(Count_User_Thread.uid, [post.uid, 0]))
         // 回复通知开始
         const QuotePost = alias(Post, 'QuotePost')
         // 向被引用人发送了回复通知的帖子
@@ -279,7 +288,6 @@ export async function pOmit(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                posts: sql`${User.posts} - 1`,
                 credits: sql`${User.credits} - 1`,
                 golds: sql`${User.golds} - 1`,
             })
