@@ -21,12 +21,6 @@ export async function tList(a: Context) {
     const i = await Auth(a)
     const page = parseInt(a.req.param('page') ?? '0') || 1
     const uid = parseInt(a.req.query('uid') ?? '0')
-    const user = uid ? (await DB(a)
-        .select()
-        .from(User)
-        .where(eq(User.uid, uid))
-    )?.[0] : null;
-    if (uid && !user) { return a.notFound() }
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const LastUser = alias(User, 'LastUser')
     const data = await DB(a)
