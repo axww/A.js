@@ -1,9 +1,8 @@
 import { Context } from "hono";
-import { sign, verify } from "hono/jwt";
-import { getCookie, setCookie } from "hono/cookie";
+import { verify } from "hono/jwt";
+import { getCookie } from "hono/cookie";
 import { eq } from 'drizzle-orm';
 import { DB, Conf, I, User } from "./base";
-import { cookieReset } from "../src/user";
 
 export class Maps {
     // 存储 map 的内存容器
@@ -70,23 +69,16 @@ export class Config {
 export async function Auth(a: Context) {
     const jwt = getCookie(a, 'JWT');
     if (!jwt) { return undefined }
-    try {
-        const secret_key = await Config.get<string>(a, 'secret_key')
-        let i = await verify(jwt, secret_key) as I
-        if (!cookieReset(i.uid)) { return i } // 不要刷新时 直接返回用户
-        const data = (await DB(a)
-            .select()
-            .from(User)
-            .where(eq(User.uid, i.uid))
-        )?.[0]
-        if (!data) { return undefined }
-        const { hash, salt, ...iNew } = data
-        setCookie(a, 'JWT', await sign(iNew, secret_key), { maxAge: 2592000 })
-        cookieReset(i.uid, false) // 清除要刷新状态
-        return iNew
-    } catch (error) {
-        return undefined
-    }
+    let auth = await verify(jwt, await Config.get<string>(a, 'secret_key')) as { uid: number }
+    if (!auth.uid) { return undefined }
+    const user = (await DB(a)
+        .select()
+        .from(User)
+        .where(eq(User.uid, auth.uid))
+    )?.[0]
+    if (!user) { return undefined }
+    const { hash, salt, ...i } = user // 把密码从返回数据中抹除
+    return i
 }
 
 export function IsAdmin(i: I, allow: any, disallow: any) {

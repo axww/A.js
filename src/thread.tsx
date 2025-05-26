@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { Props, DB, Thread, User, Count_User_Thread } from "./base";
 import { Auth, Config, Pagination } from "./core";
-import { and, desc, eq, getTableColumns, or, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { TList } from "../render/TList";
 

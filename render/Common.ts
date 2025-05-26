@@ -2,7 +2,6 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Props } from "../src/base";
 import { Config } from "../src/core";
-import { unreadMessage } from "../src/user";
 
 export async function Header(a: Context, z: Props) {
   const siteName = await Config.get<string>(a, 'site_name');
@@ -66,7 +65,7 @@ export async function Header(a: Context, z: Props) {
                   发表
                 </a></li>
               `)}
-              <li><a href="/m" class="btn btn-sm ${await unreadMessage(a, z.i.uid) ? 'btn-error' : 'btn-ghost'} gap-2">
+              <li><a href="/m" class="btn btn-sm ${z.i.messages > 0 ? 'btn-error' : 'btn-ghost'} gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
@@ -150,7 +149,7 @@ export async function Footer(a: Context, z: Props) {
               </li>
             `)}
             <li>
-              <a href="/m" class="gap-4 ${await unreadMessage(a, z.i.uid) ? 'text-error' : ''}">
+              <a href="/m" class="gap-4 ${z.i.messages > 0 ? 'text-error' : ''}">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>

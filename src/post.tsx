@@ -5,7 +5,6 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, Thread, User, Props, Count_User_Thread } from "./base";
 import { Auth, Config, Pagination, HTMLFilter, HTMLText, IsAdmin } from "./core";
 import { mAdd, mDel } from "./message";
-import { cookieReset, lastPostTime } from "./user";
 import { PEdit } from "../render/PEdit";
 import { PList } from "../render/PList";
 
@@ -92,7 +91,7 @@ export async function pSave(a: Context) {
         }
         return a.text('ok')
     } else if (eid > 0) { // 回复
-        if (time - lastPostTime(i.uid) < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const quote = (await DB(a)
             .select()
             .from(Post)
@@ -135,6 +134,7 @@ export async function pSave(a: Context) {
             .set({
                 credits: sql`${User.credits} + 1`,
                 golds: sql`${User.golds} + 1`,
+                last_time: time,
             })
             .where(eq(User.uid, post.uid))
         // 回复通知开始 如果回复的不是自己
@@ -142,11 +142,9 @@ export async function pSave(a: Context) {
             await mAdd(a, quote.uid, 1, post.pid)
         }
         // 回复通知结束
-        lastPostTime(i.uid, time) // 记录发帖时间
-        cookieReset(i.uid, true) // 刷新自己的COOKIE
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
-        if (time - lastPostTime(i.uid) < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const content = await HTMLFilter(raw)
         if (!content) { return a.text('406', 406) }
         const subject = await HTMLText(raw, 140, true)
@@ -181,6 +179,7 @@ export async function pSave(a: Context) {
             .set({
                 credits: sql`${User.credits} + 2`,
                 golds: sql`${User.golds} + 2`,
+                last_time: time,
             })
             .where(eq(User.uid, i.uid))
         await DB(a)
@@ -193,8 +192,6 @@ export async function pSave(a: Context) {
                 target: Count_User_Thread.uid,
                 set: { threads: sql`${Count_User_Thread.threads} + 1` }
             })
-        lastPostTime(i.uid, time) // 记录发帖时间
-        cookieReset(i.uid, true) // 刷新自己的COOKIE
         return a.text(String(post.pid))
     }
 }

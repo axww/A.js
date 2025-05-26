@@ -75,6 +75,8 @@ export const User = sqliteTable("user", {
     salt: text().notNull().default(''),
     credits: integer().notNull().default(0),
     golds: integer().notNull().default(0),
+    messages: integer().notNull().default(0),
+    last_time: integer().notNull().default(0),
 });
 
 export type I = Omit<typeof User.$inferSelect, "hash" | "salt">
