@@ -64,8 +64,8 @@ export async function pSave(a: Context) {
     const eid = parseInt(a.req.param('eid') ?? '0')
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
-        const [content, contentless] = await HTMLFilter(raw)
-        if (contentless) { return a.text('contentless', 422) }
+        const [content, length] = await HTMLFilter(raw)
+        if (length < 6) { return a.text('contentless', 422) }
         const subject = await HTMLText(raw, 140, true)
         const post = (await DB(a)
             .update(Post)
@@ -101,8 +101,8 @@ export async function pSave(a: Context) {
             ))
         )?.[0]
         if (!quote) { return a.text('403', 403) }
-        const [content, contentless] = await HTMLFilter(raw)
-        if (contentless) { return a.text('contentless', 422) }
+        const [content, length] = await HTMLFilter(raw)
+        if (length < 6) { return a.text('contentless', 422) }
         const thread = (await DB(a)
             .update(Thread)
             .set({
@@ -145,8 +145,8 @@ export async function pSave(a: Context) {
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        const [content, contentless] = await HTMLFilter(raw)
-        if (contentless) { return a.text('contentless', 422) }
+        const [content, length] = await HTMLFilter(raw)
+        if (length < 6) { return a.text('contentless', 422) }
         const subject = await HTMLText(raw, 140, true)
         const post = (await DB(a)
             .insert(Post)

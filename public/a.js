@@ -12,8 +12,8 @@ async function post(eid, reload = false) {
     } else {
         let errorMsg = await result.text();
         switch (errorMsg) {
-            case 'contentless': errorMsg = '请输入内容'; break;
-            case 'too_fast': errorMsg = '太快了🥵，请稍后再试'; break;
+            case 'contentless': errorMsg = '太短了😏请增加内容'; break;
+            case 'too_fast': errorMsg = '太快了🥵请稍后再试'; break;
         }
         // 创建一个简单的错误提示
         const alert = document.createElement('div');
