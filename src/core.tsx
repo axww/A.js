@@ -134,11 +134,12 @@ export function Pagination(perPage: number, sum: number, page: number, near: num
     return navigation
 }
 
-export async function HTMLFilter(html: string | null | undefined) {
-    if (!html) { return ''; }
+export async function HTMLFilter(html: string | null | undefined): Promise<[string, boolean]> {
+    if (!html) { return ['', false]; }
     const allowedTags = new Set(['a', 'b', 'i', 'u', 'font', 'strong', 'em', 'strike', 'span', 'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'menu', 'multicol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'p', 'div', 'pre', 'br', 'img', 'video', 'audio', 'code', 'blockquote', 'iframe', 'section']);
     const allowedAttrs = new Set(['target', 'href', 'src', 'alt', 'rel', 'width', 'height', 'size', 'border', 'align', 'colspan', 'rowspan', 'cite']);
-    return await new HTMLRewriter().on("*", {
+    let contentless = true;
+    return [await new HTMLRewriter().on("*", {
         element: e => {
             if (!allowedTags.has(e.tagName)) {
                 e.removeAndKeepContent();
@@ -149,8 +150,13 @@ export async function HTMLFilter(html: string | null | undefined) {
                     e.removeAttribute(name);
                 }
             }
-        }
-    }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
+        },
+        text: t => {
+            if (contentless && t.text.replace(/&nbsp;/g, " ").trim()) {
+                contentless = false;
+            }
+        },
+    }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text(), contentless]
 }
 
 export async function HTMLText(html: string | null | undefined, len = 0, first = false) {
@@ -183,7 +189,7 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
                     .replace(/&nbsp;/g, " ")
                     .trim()
             }
-        }
+        },
     }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
     if (len > 0) {
         const lenOld = text.length

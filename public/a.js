@@ -10,8 +10,11 @@ async function post(eid, reload = false) {
             window.location = document.referrer
         }
     } else {
-        const errorMsg = await result.text();
-
+        let errorMsg = await result.text();
+        switch (errorMsg) {
+            case 'contentless': errorMsg = '请输入内容'; break;
+            case 'too_fast': errorMsg = '太快了🥵，请稍后再试'; break;
+        }
         // 创建一个简单的错误提示
         const alert = document.createElement('div');
         alert.style.position = 'fixed';
@@ -32,7 +35,7 @@ async function post(eid, reload = false) {
                 <span>提交失败</span>
             </div>
             <div style="margin-bottom: 20px;">
-                ${errorMsg === 'too_fast' ? '太快了🥵，请稍后再试' : errorMsg}
+                ${errorMsg}
             </div>
             <button style="background-color: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
                 确定

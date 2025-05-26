@@ -114,7 +114,7 @@ export async function Footer(a: Context, z: Props) {
           `)}
         </div>
         <p class="text-sm opacity-50">
-          <a href="https://github.com/SewerHole/cesspit" target="_blank">GitHub</a>
+          <a href="https://github.com/axww/Cesspit.ts" target="_blank">GitHub</a>
           <a href="https://www.dogyun.com/" target="_blank">DogYun</a>
         </p>
       </div>
