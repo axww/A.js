@@ -103,7 +103,7 @@ export async function pSave(a: Context) {
             ))
             .leftJoin(Thread, eq(Post.tid, Thread.tid))
         )?.[0]
-        if (!quote || !quote.last_time) { return a.text('403', 403) } // 被回复帖子和主题都存在
+        if (!quote || !quote.last_time) { return a.text('not_found', 403) } // 被回复帖子和主题都存在
         if (time > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 6) { return a.text('content_short', 422) }
@@ -209,7 +209,12 @@ export async function pOmit(a: Context) {
     if (!i) { return a.text('401', 401) }
     const pid = -parseInt(a.req.param('eid') ?? '0')
     const post = (await DB(a)
-        .select()
+        .select({
+            pid: Post.pid,
+            uid: Post.uid,
+            tid: Post.tid,
+            quote_pid: Post.quote_pid,
+        })
         .from(Post)
         .where(and(
             eq(Post.pid, pid),

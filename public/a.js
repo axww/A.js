@@ -15,6 +15,7 @@ async function post(eid, reload = false) {
             case 'content_short': errorMsg = '太短了😏请增加内容'; break;
             case 'too_fast': errorMsg = '太快了🥵请稍后再试'; break;
             case 'too_old': errorMsg = '帖子太旧已无法回复'; break;
+            case 'not_found': errorMsg = '被回复帖子不存在'; break;
         }
         // 创建一个简单的错误提示
         const alert = document.createElement('div');
