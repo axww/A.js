@@ -149,13 +149,16 @@ export async function pSave(a: Context) {
         const subject = await HTMLText(raw, 140, true)
         const res = (await DB(a).batch([
             // last_insert_rowid() = post.pid
-            DB(a).insert(Post).values({
-                uid: i.uid,
-                time,
-                content,
-            }).returning({ pid: Post.pid })
+            DB(a)
+                .insert(Post)
+                .values({
+                    uid: i.uid,
+                    time,
+                    content,
+                }).returning({ pid: Post.pid })
             ,
-            DB(a).update(Post)
+            DB(a)
+                .update(Post)
                 .set({
                     tid: Post.pid,
                 })
