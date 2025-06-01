@@ -223,28 +223,33 @@ export async function pOmit(a: Context) {
     if (!post) { return a.text('410:gone', 410) }
     if (post.pid == post.tid) {
         // 如果删的是Thread
-        await DB(a)
-            .update(Thread)
-            .set({
-                access: 3,
-            })
-            .where(and(
-                eq(Thread.tid, post.tid),
-                IsAdmin(i, undefined, eq(Thread.uid, i.uid)), // 管理和作者都能删除
-            ))
-        await DB(a)
-            .update(User)
-            .set({
-                credits: sql`${User.credits} - 2`,
-                golds: sql`${User.golds} - 2`,
-            })
-            .where(eq(User.uid, post.uid))
-        await DB(a)
-            .update(Count_User_Thread)
-            .set({
-                threads: sql`${Count_User_Thread.threads} - 1`,
-            })
-            .where(inArray(Count_User_Thread.uid, [post.uid, 0]))
+        await DB(a).batch([
+            DB(a)
+                .update(Thread)
+                .set({
+                    access: 3,
+                })
+                .where(and(
+                    eq(Thread.tid, post.tid),
+                    IsAdmin(i, undefined, eq(Thread.uid, i.uid)), // 管理和作者都能删除
+                ))
+            ,
+            DB(a)
+                .update(User)
+                .set({
+                    credits: sql`${User.credits} - 2`,
+                    golds: sql`${User.golds} - 2`,
+                })
+                .where(eq(User.uid, post.uid))
+            ,
+            DB(a)
+                .update(Count_User_Thread)
+                .set({
+                    threads: sql`${Count_User_Thread.threads} - 1`,
+                })
+                .where(inArray(Count_User_Thread.uid, [post.uid, 0]))
+            ,
+        ])
         // 回复通知开始
         const QuotePost = alias(Post, 'QuotePost')
         // 向被引用人发送了回复通知的帖子
@@ -282,21 +287,25 @@ export async function pOmit(a: Context) {
             .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
             .limit(1)
         )?.[0]
-        await DB(a)
-            .update(Thread)
-            .set({
-                posts: sql`${Thread.posts} - 1`,
-                last_uid: (last.pid == last.tid) ? 0 : last.uid, // 仅剩顶楼时没有最后回复
-                last_time: last.time,
-            })
-            .where(eq(Thread.tid, post.tid))
-        await DB(a)
-            .update(User)
-            .set({
-                credits: sql`${User.credits} - 1`,
-                golds: sql`${User.golds} - 1`,
-            })
-            .where(eq(User.uid, post.uid))
+        await DB(a).batch([
+            DB(a)
+                .update(Thread)
+                .set({
+                    posts: sql`${Thread.posts} - 1`,
+                    last_uid: (last.pid == last.tid) ? 0 : last.uid, // 仅剩顶楼时没有最后回复
+                    last_time: last.time,
+                })
+                .where(eq(Thread.tid, post.tid))
+            ,
+            DB(a)
+                .update(User)
+                .set({
+                    credits: sql`${User.credits} - 1`,
+                    golds: sql`${User.golds} - 1`,
+                })
+                .where(eq(User.uid, post.uid))
+            ,
+        ])
         // 回复通知开始
         const quote = (await DB(a)
             .select()
