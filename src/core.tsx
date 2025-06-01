@@ -187,22 +187,23 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
                     .replace(/&#39;/g, "'")
                     .replace(/&nbsp;/g, " ")
                     .trim()
+                if (text.length >= len) {
+                    if (text.length > len) {
+                        text = text.slice(0, len - 3) + '...';
+                    }
+                    stop = true;
+                    return;
+                }
             }
         },
     }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
-    if (len > 0) {
-        const lenOld = text.length
-        if (lenOld > len) {
-            text = text.slice(0, len - 3) + '...'
-        }
-    }
     return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, '&quot;')
         .replace(/'/g, "&#39;")
-        .trim() || '...'
+        || '...'
 }
 
 export function URLQuery(a: Context) {
