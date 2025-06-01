@@ -191,12 +191,14 @@ ${Header(a, z)}
                                         删除
                                     </button>
                                 `: ''}
+                                ${!z.thread_lock ? html`
                                 <a href="/e/${item.pid}" class="btn btn-sm btn-ghost">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                     </svg>
                                     回复
                                 </a>
+                                `: ''}
                             </div>
                         ` : ''}
                     </div>
@@ -219,7 +221,7 @@ ${Header(a, z)}
         </div>
     `: ''}
     
-    ${z.i ? html`
+    ${z.i && !z.thread_lock ? html`
         <div class="card bg-base-100 shadow-sm mt-8">
             <div class="card p-4">
                 <div name="content"></div>
@@ -233,9 +235,6 @@ ${Header(a, z)}
                 </div>
             </div>
         </div>
-    ` : ''}
-</div>
-
 <script src="/quill.js"></script>
 <script>
     const quill = new Quill('[name="content"]', {
@@ -248,6 +247,8 @@ ${Header(a, z)}
     const toolbar = quill.getModule('toolbar');
     toolbar.addHandler('image', upload);
 </script>
+    ` : ''}
+</div>
 
 <script>
 window.addEventListener("load", function () {

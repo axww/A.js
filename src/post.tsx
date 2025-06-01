@@ -47,13 +47,11 @@ export async function pEdit(a: Context) {
         )?.[0]
         if (!post) { return a.text('403', 403) }
         content = raw(post.content) ?? ''
-    } else if (eid > 0) {
-        title = "回复"
     } else {
-        title = "发表"
+        title = "发帖"
     }
-    const edit_forbid = true;
-    return a.html(PEdit(a, { i, title, eid, content, edit_forbid }));
+    const thread_lock = true;
+    return a.html(PEdit(a, { i, title, eid, content, thread_lock }));
 }
 
 export async function pSave(a: Context) {
@@ -65,7 +63,7 @@ export async function pSave(a: Context) {
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('contentless', 422) }
+        if (length < 6) { return a.text('content_short', 422) }
         const post = (await DB(a)
             .update(Post)
             .set({
@@ -92,60 +90,65 @@ export async function pSave(a: Context) {
     } else if (eid > 0) { // 回复
         if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const quote = (await DB(a)
-            .select()
+            .select({
+                pid: Post.pid,
+                uid: Post.uid,
+                tid: Post.tid,
+                last_time: Thread.last_time,
+            })
             .from(Post)
             .where(and(
                 eq(Post.pid, eid),
                 eq(Post.access, 0),
             ))
+            .leftJoin(Thread, eq(Post.tid, Thread.tid))
         )?.[0]
-        if (!quote) { return a.text('403', 403) }
+        if (!quote || !quote.last_time) { return a.text('403', 403) } // 被回复帖子和主题都存在
+        if (time > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('contentless', 422) }
-        const thread = (await DB(a)
-            .update(Thread)
-            .set({
-                posts: sql`${Thread.posts}+1`,
-                last_uid: i.uid,
-                last_time: time,
-            })
-            .where(and(
-                eq(Thread.tid, quote.tid),
-                gt(sql`${Thread.last_time} + 604800`, time), // 7天后禁止回复
-            ))
-            .returning()
-        )?.[0]
-        // 帖子找不到 一周没有热度 禁止回复
-        if (!thread) { return a.text('403', 403) }
-        const post = (await DB(a)
-            .insert(Post)
-            .values({
-                tid: quote.tid,
-                uid: i.uid,
-                time,
-                quote_pid: quote.pid,
-                content,
-            })
-            .returning()
-        )?.[0]
-        await DB(a)
-            .update(User)
-            .set({
-                credits: sql`${User.credits} + 1`,
-                golds: sql`${User.golds} + 1`,
-                last_time: time,
-            })
-            .where(eq(User.uid, post.uid))
+        if (length < 6) { return a.text('content_short', 422) }
+        const res = (await DB(a).batch([
+            DB(a)
+                .insert(Post)
+                .values({
+                    tid: quote.tid,
+                    uid: i.uid,
+                    time,
+                    quote_pid: quote.pid,
+                    content,
+                })
+                .returning({ pid: Post.pid })
+            ,
+            DB(a)
+                .update(Thread)
+                .set({
+                    posts: sql`${Thread.posts}+1`,
+                    last_uid: i.uid,
+                    last_time: time,
+                })
+                .where(eq(Thread.tid, quote.tid))
+            ,
+            DB(a)
+                .update(User)
+                .set({
+                    credits: sql`${User.credits} + 1`,
+                    golds: sql`${User.golds} + 1`,
+                    last_time: time,
+                })
+                .where(eq(User.uid, i.uid))
+            ,
+        ]))[0][0]
+        if (!res.pid) { return a.text('db execute failed', 403) }
         // 回复通知开始 如果回复的不是自己
-        if (post.uid != quote.uid) {
-            await mAdd(a, quote.uid, 1, post.pid)
+        if (i.uid != quote.uid) {
+            await mAdd(a, quote.uid, 1, res.pid)
         }
         // 回复通知结束
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('contentless', 422) }
+        if (length < 6) { return a.text('content_short', 422) }
         const subject = await HTMLText(raw, 140, true)
         const res = (await DB(a).batch([
             // last_insert_rowid() = post.pid
@@ -350,8 +353,8 @@ export async function pList(a: Context) {
         .limit(page_size_p)
     const pagination = Pagination(page_size_p, thread.posts, page, 2)
     const title = thread.subject
-    const edit_forbid = (thread.last_time + 604800) < Math.floor(Date.now() / 1000)
-    return a.html(PList(a, { i, thread, page, pagination, data, title, edit_forbid }))
+    const thread_lock = Math.floor(Date.now() / 1000) > (thread.last_time + 604800)
+    return a.html(PList(a, { i, thread, page, pagination, data, title, thread_lock }))
 }
 
 export async function pJump(a: Context) {

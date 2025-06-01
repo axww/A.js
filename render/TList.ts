@@ -86,12 +86,12 @@ ${Header(a, z)}
                 <div class="max-w-md">
                     <h2 class="text-xl lg:text-2xl font-bold mb-4">暂无内容</h2>
                     <p class="text-base-content/60 mb-6">还没有任何帖子，来发表第一个帖子吧！</p>
-                    ${!z.edit_forbid ? html`
+                    ${!z.thread_lock ? html`
                         <a href="/e" class="btn btn-primary gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            发表
+                            发帖
                         </a>
                     ` : ''}
                 </div>

@@ -85,6 +85,6 @@ export interface Props {
     i: I | undefined
     title: string
     description?: string;  // 可选的描述属性，用于SEO
-    edit_forbid?: boolean
+    thread_lock?: boolean
     head_external?: string
 }
