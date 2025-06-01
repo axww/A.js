@@ -148,51 +148,54 @@ export async function pSave(a: Context) {
         const [content, length] = await HTMLFilter(raw)
         if (length < 6) { return a.text('contentless', 422) }
         const subject = await HTMLText(raw, 140, true)
-        const post = (await DB(a)
-            .insert(Post)
-            .values({
+        const res = (await DB(a).batch([
+            // last_insert_rowid() = post.pid
+            DB(a).insert(Post).values({
                 uid: i.uid,
                 time,
                 content,
-            })
-            .returning()
-        )?.[0]
-        post.tid = post.pid
-        await DB(a)
-            .update(Post)
-            .set({
-                tid: post.tid,
-            })
-            .where(eq(Post.pid, post.pid))
-        await DB(a)
-            .insert(Thread)
-            .values({
-                tid: post.tid,
-                uid: i.uid,
-                subject,
-                time,
-                last_time: time,
-                posts: 1,
-            })
-        await DB(a)
-            .update(User)
-            .set({
-                credits: sql`${User.credits} + 2`,
-                golds: sql`${User.golds} + 2`,
-                last_time: time,
-            })
-            .where(eq(User.uid, i.uid))
-        await DB(a)
-            .insert(Count_User_Thread)
-            .values([
-                { uid: i.uid, threads: 1 },
-                { uid: 0, threads: 1 },
-            ])
-            .onConflictDoUpdate({
-                target: Count_User_Thread.uid,
-                set: { threads: sql`${Count_User_Thread.threads} + 1` }
-            })
-        return a.text(String(post.pid))
+            }).returning({ pid: Post.pid })
+            ,
+            DB(a).update(Post)
+                .set({
+                    tid: sql`last_insert_rowid()`,
+                })
+                .where(eq(Post.pid, sql`last_insert_rowid()`))
+            ,
+            DB(a)
+                .insert(Thread)
+                .values({
+                    tid: sql`last_insert_rowid()`,
+                    uid: i.uid,
+                    subject,
+                    time,
+                    last_time: time,
+                    posts: 1,
+                })
+            ,
+            DB(a)
+                .update(User)
+                .set({
+                    credits: sql`${User.credits} + 2`,
+                    golds: sql`${User.golds} + 2`,
+                    last_time: time,
+                })
+                .where(eq(User.uid, i.uid))
+            ,
+            DB(a)
+                .insert(Count_User_Thread)
+                .values([
+                    { uid: i.uid, threads: 1 },
+                    { uid: 0, threads: 1 },
+                ])
+                .onConflictDoUpdate({
+                    target: Count_User_Thread.uid,
+                    set: { threads: sql`${Count_User_Thread.threads} + 1` }
+                })
+            ,
+        ]))[0][0]
+        if (!res.pid) { return a.text('db execute failed', 403) }
+        return a.text(String(res.pid))
     }
 }
 
