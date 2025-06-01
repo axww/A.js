@@ -66,7 +66,6 @@ export async function pSave(a: Context) {
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
         if (length < 6) { return a.text('contentless', 422) }
-        const subject = await HTMLText(raw, 140, true)
         const post = (await DB(a)
             .update(Post)
             .set({
@@ -85,7 +84,7 @@ export async function pSave(a: Context) {
             await DB(a)
                 .update(Thread)
                 .set({
-                    subject,
+                    subject: await HTMLText(raw, 140, true),
                 })
                 .where(eq(Thread.tid, post.tid))
         }
