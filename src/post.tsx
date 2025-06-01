@@ -103,7 +103,7 @@ export async function pSave(a: Context) {
             ))
             .leftJoin(Thread, eq(Post.tid, Thread.tid))
         )?.[0]
-        if (!quote || !quote.last_time) { return a.text('not_found', 403) } // 被回复帖子和主题都存在
+        if (!quote || !quote.last_time) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
         if (time > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 6) { return a.text('content_short', 422) }
