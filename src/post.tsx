@@ -269,18 +269,22 @@ export async function pOmit(a: Context) {
         // 回复通知结束
     } else {
         // 如果删的是Post
-        const last = (await DB(a)
-            .select()
-            .from(Post)
-            .where(and(
-                // access
-                eq(Post.access, 0),
-                // tid
-                eq(Post.tid, post.tid),
-            ))
-            .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
-            .limit(1)
-        )?.[0]
+        const last = DB(a).$with('last').as(
+            DB(a)
+                .select({
+                    uid: sql`CASE WHEN ${Post.pid} = ${Post.tid} THEN 0 ELSE ${Post.uid} END`.as('uid'), // 仅剩顶楼时
+                    time: Post.time,
+                })
+                .from(Post)
+                .where(and(
+                    // access
+                    eq(Post.access, 0),
+                    // tid
+                    eq(Post.tid, post.tid),
+                ))
+                .orderBy(desc(Post.access), desc(Post.tid), desc(Post.pid))
+                .limit(1)
+        )
         await DB(a).batch([
             DB(a)
                 .update(Post)
@@ -290,11 +294,12 @@ export async function pOmit(a: Context) {
                 .where(eq(Post.pid, post.pid))
             ,
             DB(a)
+                .with(last)
                 .update(Thread)
                 .set({
                     posts: sql`${Thread.posts} - 1`,
-                    last_uid: (last.pid == last.tid) ? 0 : last.uid, // 仅剩顶楼时没有最后回复
-                    last_time: last.time,
+                    last_uid: sql`(SELECT uid FROM ${last})`,
+                    last_time: sql`(SELECT time FROM ${last})`,
                 })
                 .where(eq(Thread.tid, post.tid))
             ,
