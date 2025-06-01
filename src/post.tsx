@@ -158,7 +158,7 @@ export async function pSave(a: Context) {
             ,
             DB(a).update(Post)
                 .set({
-                    tid: sql`last_insert_rowid()`,
+                    tid: Post.pid,
                 })
                 .where(eq(Post.pid, sql`last_insert_rowid()`))
             ,
