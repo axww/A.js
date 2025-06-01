@@ -159,24 +159,25 @@ export async function HTMLFilter(html: string | null | undefined): Promise<[stri
 
 export async function HTMLText(html: string | null | undefined, len = 0, first = false) {
     if (!html) { return ''; }
-    let stop = 0;
     let text = '';
+    let stop = false;
     await new HTMLRewriter().on('*', {
         element: e => {
-            if (stop == 2) { return; }
+            if (stop) { return }
             if (['p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(e.tagName)) {
-                text += ' '
-                // 如果只取首行 且遇到换行符 则标记预备停止
-                if (first && !stop) {
-                    stop = 1;
+                // 如果只取首行 且遇到换行符 则标签结束时停止
+                if (first) {
                     e.onEndTag(() => {
-                        stop = text.trim() ? 2 : 0;
+                        // 有文字再结束
+                        if (text) { stop = true }
                     })
+                } else {
+                    text += ' '
                 }
             }
         },
         text: t => {
-            if (stop == 2) { return; }
+            if (stop) { return }
             if (t.text) {
                 text += t.text
                     .replace(/&amp;/g, "&")
