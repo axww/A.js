@@ -179,15 +179,6 @@ export async function pSave(a: Context) {
                 })
             ,
             DB(a)
-                .update(User)
-                .set({
-                    credits: sql`${User.credits} + 2`,
-                    golds: sql`${User.golds} + 2`,
-                    last_time: time,
-                })
-                .where(eq(User.uid, i.uid))
-            ,
-            DB(a)
                 .insert(Count_User_Thread)
                 .values([
                     { uid: i.uid, threads: 1 },
@@ -197,6 +188,15 @@ export async function pSave(a: Context) {
                     target: Count_User_Thread.uid,
                     set: { threads: sql`${Count_User_Thread.threads} + 1` }
                 })
+            ,
+            DB(a)
+                .update(User)
+                .set({
+                    credits: sql`${User.credits} + 2`,
+                    golds: sql`${User.golds} + 2`,
+                    last_time: time,
+                })
+                .where(eq(User.uid, i.uid))
             ,
         ]))[0][0]
         if (!res.pid) { return a.text('db execute failed', 403) }
@@ -209,17 +209,14 @@ export async function pOmit(a: Context) {
     if (!i) { return a.text('401', 401) }
     const pid = -parseInt(a.req.param('eid') ?? '0')
     const post = (await DB(a)
-        .update(Post)
-        .set({
-            access: 3,
-        })
+        .select()
+        .from(Post)
         .where(and(
             eq(Post.pid, pid),
             IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能删除
         ))
-        .returning()
     )?.[0]
-    // 如果无法删除则报错
+    // 如果帖子不存在则报错
     if (!post) { return a.text('410:gone', 410) }
     if (post.pid == post.tid) {
         // 如果删的是Thread
@@ -229,10 +226,14 @@ export async function pOmit(a: Context) {
                 .set({
                     access: 3,
                 })
-                .where(and(
-                    eq(Thread.tid, post.tid),
-                    IsAdmin(i, undefined, eq(Thread.uid, i.uid)), // 管理和作者都能删除
-                ))
+                .where(eq(Thread.tid, post.tid))
+            ,
+            DB(a)
+                .update(Count_User_Thread)
+                .set({
+                    threads: sql`${Count_User_Thread.threads} - 1`,
+                })
+                .where(inArray(Count_User_Thread.uid, [post.uid, 0]))
             ,
             DB(a)
                 .update(User)
@@ -241,13 +242,6 @@ export async function pOmit(a: Context) {
                     golds: sql`${User.golds} - 2`,
                 })
                 .where(eq(User.uid, post.uid))
-            ,
-            DB(a)
-                .update(Count_User_Thread)
-                .set({
-                    threads: sql`${Count_User_Thread.threads} - 1`,
-                })
-                .where(inArray(Count_User_Thread.uid, [post.uid, 0]))
             ,
         ])
         // 回复通知开始
@@ -288,6 +282,13 @@ export async function pOmit(a: Context) {
             .limit(1)
         )?.[0]
         await DB(a).batch([
+            DB(a)
+                .update(Post)
+                .set({
+                    access: 3,
+                })
+                .where(eq(Post.pid, post.pid))
+            ,
             DB(a)
                 .update(Thread)
                 .set({
