@@ -180,7 +180,7 @@ export async function Footer(a: Context, z: Props) {
             }
         }
     }
-    window.addEventListener('load', function() {
+    window.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.date').forEach(element => {
             element.innerHTML = new Date(parseInt(element.getAttribute('time_stamp'))*1000)
                                     .toLocaleString(undefined,{
