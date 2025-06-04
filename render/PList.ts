@@ -169,8 +169,8 @@ ${Header(a, z)}
                         ${(z.i) ? html`
                             <div class="flex-1"></div>
                             <div class="flex flex-wrap gap-1">
-                                ${(z.i.gid == 1 && item.pid == item.tid) ? html`
-                                    <button class="btn btn-sm btn-ghost ${z.thread.is_top ? 'btn-active' : ''}" onclick="pin(${item.pid});">
+                                ${(z.i.gid == 1 && !item.tid) ? html`
+                                    <button class="btn btn-sm btn-ghost ${z.data[0].type ? 'btn-active' : ''}" onclick="pin(${item.pid});">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
                                         </svg>
@@ -212,7 +212,7 @@ ${Header(a, z)}
             <div class="flex flex-wrap gap-1">
                 ${z.pagination.map(item => html`
                     ${item ? html`
-                        <a href="/t/${z.thread.tid}/${item}${URLQuery(a)}" class="btn btn-sm ${item == z.page ? 'btn-active' : 'btn-ghost'}">${item}</a>
+                        <a href="/t/${z.data[0].pid}/${item}${URLQuery(a)}" class="btn btn-sm ${item == z.page ? 'btn-active' : 'btn-ghost'}">${item}</a>
                     ` : html`
                         <span class="btn btn-sm btn-ghost">...</span>
                     `}
@@ -226,7 +226,7 @@ ${Header(a, z)}
             <div class="card p-4">
                 <div name="content"></div>
                 <div class="flex justify-end mt-2">
-                    <button class="btn btn-primary" onclick="post(${z.thread.tid},true)">
+                    <button class="btn btn-primary" onclick="post(${z.data[0].pid},true)">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>

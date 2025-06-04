@@ -17,9 +17,9 @@ export const Conf = sqliteTable("conf", {
     value: text(),
 });
 
-export const Count_User_Thread = sqliteTable("count_user_thread", {
-    uid: integer().primaryKey(),
-    threads: integer().notNull().default(0),
+export const Count = sqliteTable("count", {
+    uid_tid: integer().primaryKey(),
+    quantity: integer().notNull().default(0),
 });
 
 export const Message = sqliteTable("message", {
@@ -42,27 +42,14 @@ export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
     tid: integer().notNull().default(0),
     uid: integer().notNull().default(0),
+    type: integer().notNull().default(0),
+    sort: integer().notNull().default(0), // T:last_time P:post_time
+    clue: integer().notNull().default(0), // T:last_uid P:quote_pid
     time: integer().notNull().default(0),
-    access: integer().notNull().default(0),
-    quote_pid: integer().notNull().default(0),
     content: text().notNull().default(''),
 }, (table) => [
-    index("post:access,tid,pid").on(table.access, table.tid, table.pid), // 帖子内的回复
-]);
-
-export const Thread = sqliteTable("thread", {
-    tid: integer().primaryKey(),
-    uid: integer().notNull().default(0),
-    time: integer().notNull().default(0),
-    access: integer().notNull().default(0),
-    is_top: integer().notNull().default(0),
-    last_time: integer().notNull().default(0),
-    last_uid: integer().notNull().default(0),
-    posts: integer().notNull().default(0),
-    subject: text().notNull().default(''),
-}, (table) => [
-    index("thread:access,is_top,last_time").on(table.access, table.is_top, table.last_time), // 按帖子置顶与最后回复排序
-    index("thread:access,uid,time").on(table.access, table.uid, table.time), // 按用户发帖时间排序
+    index("post:type,tid,sort").on(table.type, table.tid, table.sort),
+    index("post:type,uid,tid,sort").on(table.type, table.uid, table.tid, table.sort),
 ]);
 
 export const User = sqliteTable("user", {

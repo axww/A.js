@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
-import { URLQuery } from "../src/core";
+import { HTMLText, URLQuery } from "../src/core";
 import { TListProps } from "../src/thread";
 
 export function TList(a: Context, z: TListProps) {
@@ -12,20 +12,19 @@ ${Header(a, z)}
 
     <!-- 帖子列表 -->
     <div class="lg:px-0">
-        ${z.data.map(item => html`
-            <a href="/t/${item.tid}" class="block card bg-base-100 shadow-sm hover:shadow-md transition-all duration-200 mb-4">
+        ${z.data.map(async item => html`
+            <a href="/t/${item.pid}" class="block card bg-base-100 shadow-sm hover:shadow-md transition-all duration-200 mb-4">
                 <div class="card-body p-4">
                     <div class="flex flex-wrap items-start gap-4">
                         <!-- 左侧信息 -->
                         <div class="flex-1 min-w-0 overflow-hidden">
                             <div class="flex flex-wrap items-center gap-2 mb-2">
-                                ${item.is_top ? html`
+                                ${item.type ? html`
                                     <div class="badge badge-primary badge-sm lg:badge-md flex-shrink-0">置顶</div>
                                 ` : ''}
                                 <div class="min-w-0 flex-1">
                                     <h2 class="card-title text-base lg:text-lg hover:text-primary block">
-                                        <span class="lg:hidden line-clamp-3 break-words">${raw(item.subject)}</span>
-                                        <span class="hidden lg:block truncate">${raw(item.subject)}</span>
+                                        <span class="lg:hidden line-clamp-3 break-words">${raw(await HTMLText(item.content, 140, true))}</span>
                                     </h2>
                                 </div>
                             </div>
@@ -48,7 +47,7 @@ ${Header(a, z)}
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                         </svg>
                                         <span class="truncate">最后回复: ${item.last_name}</span>
-                                        <span class="date whitespace-nowrap flex-shrink-0" time_stamp="${item.last_time}"></span>
+                                        <span class="date whitespace-nowrap flex-shrink-0" time_stamp="${item.sort}"></span>
                                     </div>
                                 ` : ''}
                             </div>
@@ -57,7 +56,7 @@ ${Header(a, z)}
                         <div class="flex items-center flex-shrink-0">
                             <div class="stat px-2 py-1 lg:px-3">
                                 <div class="stat-title text-xs">回复</div>
-                                <div class="stat-value text-base lg:text-lg">${item.posts - 1}</div>
+                                <div class="stat-value text-base lg:text-lg">${item.count ?? 0}</div>
                             </div>
                         </div>
                     </div>
