@@ -132,7 +132,7 @@ ${Header(a, z)}
 <div class="container mx-auto max-w-5xl lg:px-0">
     <div class="flex flex-col gap-4">
         ${z.data.map(async item => html`
-            <div id="p${item.pid}" class="card bg-base-100 shadow-sm">
+            <div id="time-${item.time}" class="card bg-base-100 shadow-sm">
                 <div class="card-body p-4">
                     ${item.quote_name ? html`
                     <blockquote class="bg-base-200 px-4 py-3 rounded-lg mb-6">
@@ -254,7 +254,7 @@ ${Header(a, z)}
 window.addEventListener("load", function () {
     const search = window.location.search;
     if (search) {
-        const target = document.querySelector('#p'+search.substring(1));
+        const target = document.querySelector('#time-'+search.substring(1));
         if (target) {
             target.style.scrollMarginTop = "80px"; // 设置滚动边距
             target.scrollIntoView({ behavior: "smooth", block: "start" });

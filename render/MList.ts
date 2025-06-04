@@ -227,7 +227,7 @@ function addMessageCard(row, list, messageType) {
     }
     
     const link = document.createElement('a');
-    link.href = '/p?tid=' + row.post_tid + '&pid=' + row.post_pid;
+    link.href = '/p?tid=' + row.post_tid + '&time=' + row.post_time;
     link.className = 'group';
     link.target = '_blank';
     

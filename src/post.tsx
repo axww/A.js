@@ -361,7 +361,7 @@ export async function pList(a: Context) {
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.clue, Post.tid), eq(QuotePost.pid, Post.clue), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.sort))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
@@ -373,8 +373,8 @@ export async function pList(a: Context) {
 
 export async function pJump(a: Context) {
     const tid = parseInt(a.req.query('tid') ?? '0')
-    const pid = parseInt(a.req.query('pid') ?? '0')
-    if (!tid || !pid) { return a.redirect('/') }
+    const time = parseInt(a.req.query('time') ?? '0')
+    if (!tid || !time) { return a.redirect('/') }
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const data = (await DB(a)
         .select({ count: count() })
@@ -384,11 +384,11 @@ export async function pJump(a: Context) {
             eq(Post.type, 0),
             // tid
             eq(Post.tid, tid),
-            // pid
-            lte(Post.pid, pid),
+            // time
+            lte(Post.sort, time),
         ))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.pid))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
-    return a.redirect('/t/' + tid + '/' + page + '?' + pid, 301)
+    return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)
 }
