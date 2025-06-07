@@ -113,6 +113,14 @@ export async function pSave(a: Context) {
                 .returning({ pid: Post.pid })
             ,
             DB(a)
+                .update(Post)
+                .set({
+                    sort: time,
+                    clue: i.uid,
+                })
+                .where(eq(Post.pid, quote.tid))
+            ,
+            DB(a)
                 .insert(Count)
                 .values([
                     { uid_tid: quote.tid, quantity: 1 },
@@ -231,7 +239,6 @@ export async function pOmit(a: Context) {
         const postArr = await DB(a)
             .select({
                 pid: Post.pid,
-                time: Post.time,
                 quote_uid: QuotePost.uid,
             })
             .from(Post)
