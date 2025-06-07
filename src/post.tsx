@@ -235,11 +235,11 @@ export async function pOmit(a: Context) {
         ])
         // 回复通知开始
         const QuotePost = alias(Post, 'QuotePost')
-        // 向被引用人发送了回复通知的帖子
+        // 找出该主题所有帖子 以及它们引用的帖子 删除回复通知
         const postArr = await DB(a)
             .select({
-                pid: Post.pid,
-                quote_uid: QuotePost.uid,
+                pid: Post.pid, // 回复的ID
+                quote_uid: QuotePost.uid, // 被回复的UID
             })
             .from(Post)
             .where(and(
