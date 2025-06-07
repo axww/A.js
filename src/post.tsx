@@ -62,7 +62,7 @@ export async function pSave(a: Context) {
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('content_short', 422) }
+        if (length < 3) { return a.text('content_short', 422) }
         const post = (await DB(a)
             .update(Post)
             .set({
@@ -93,12 +93,12 @@ export async function pSave(a: Context) {
                 eq(Post.pid, eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能回复
             ))
-            .leftJoin(Thread, eq(Thread.tid, sql`CASE WHEN ${Post.tid} = 0 THEN ${Post.pid} ELSE ${Post.tid} END`))
+            .leftJoin(Thread, eq(Thread.pid, sql`CASE WHEN ${Post.tid} = 0 THEN ${Post.pid} ELSE ${Post.tid} END`))
         )?.[0]
-        if (!quote || !quote.tid || !quote.last_time) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
+        if (!quote || quote.tid === null || quote.last_time === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
         if (time > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('content_short', 422) }
+        if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
             DB(a)
                 .insert(Post)
@@ -142,7 +142,7 @@ export async function pSave(a: Context) {
     } else { // 发帖
         if (time - i.last_time < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
         const [content, length] = await HTMLFilter(raw)
-        if (length < 6) { return a.text('content_short', 422) }
+        if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
             // last_insert_rowid() = post.pid
             DB(a)

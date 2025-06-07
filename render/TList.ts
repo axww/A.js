@@ -24,7 +24,7 @@ ${Header(a, z)}
                                 ` : ''}
                                 <div class="min-w-0 flex-1">
                                     <h2 class="card-title text-base lg:text-lg hover:text-primary block">
-                                        <span class="lg:hidden line-clamp-3 break-words">${raw(await HTMLText(item.content, 140, true))}</span>
+                                        <span class="lg:block truncate line-clamp-3 break-words">${raw(await HTMLText(item.content, 140, true))}</span>
                                     </h2>
                                 </div>
                             </div>
