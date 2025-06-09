@@ -86,7 +86,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.uid,
                 tid: Thread.pid,
-                last_time: Thread.sort,
+                last_time: Thread.sort_time,
             })
             .from(Post)
             .where(and(
@@ -105,9 +105,9 @@ export async function pSave(a: Context) {
                 .values({
                     tid: quote.tid,
                     uid: i.uid,
-                    sort: time,
-                    clue: quote.pid,
                     time,
+                    sort_time: time,
+                    from_uid_pid: quote.pid,
                     content,
                 })
                 .returning({ pid: Post.pid })
@@ -115,8 +115,8 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort: time,
-                    clue: i.uid,
+                    sort_time: time,
+                    from_uid_pid: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -157,8 +157,8 @@ export async function pSave(a: Context) {
                 .insert(Post)
                 .values({
                     uid: i.uid,
-                    sort: time,
                     time,
+                    sort_time: time,
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -197,7 +197,7 @@ export async function pOmit(a: Context) {
             pid: Post.pid,
             uid: Post.uid,
             tid: Post.tid,
-            clue: Post.clue,
+            from_uid_pid: Post.from_uid_pid,
         })
         .from(Post)
         .where(and(
@@ -247,7 +247,7 @@ export async function pOmit(a: Context) {
                 eq(Post.tid, post.pid), // 此处 post.pid 就是 tid
                 ne(Post.uid, QuotePost.uid),
             ))
-            .leftJoin(QuotePost, eq(QuotePost.pid, Post.clue))
+            .leftJoin(QuotePost, eq(QuotePost.pid, Post.from_uid_pid))
         postArr.forEach(async function (row) {
             if (row.quote_uid) {
                 // 未读 已读 消息都删
@@ -270,7 +270,7 @@ export async function pOmit(a: Context) {
                     // tid
                     eq(Post.tid, post.tid),
                 ))
-                .orderBy(desc(Post.type), desc(Post.tid), desc(Post.sort))
+                .orderBy(desc(Post.type), desc(Post.tid), desc(Post.sort_time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -285,8 +285,8 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    sort: sql`COALESCE((SELECT time FROM ${last}),${Post.time})`,
-                    clue: sql`(SELECT COALESCE(uid,0) FROM ${last})`,
+                    sort_time: sql`COALESCE((SELECT time FROM ${last}),${Post.time})`,
+                    from_uid_pid: sql`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
             ,
@@ -310,7 +310,7 @@ export async function pOmit(a: Context) {
         const quote = (await DB(a)
             .select()
             .from(Post)
-            .where(eq(Post.pid, post.clue))
+            .where(eq(Post.pid, post.from_uid_pid))
         )?.[0]
         // 如果存在被回复帖 且回复的不是自己
         if (quote && post.uid != quote.uid) {
@@ -366,15 +366,15 @@ export async function pList(a: Context) {
             eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.clue, Post.tid), eq(QuotePost.pid, Post.clue), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.from_uid_pid, Post.tid), eq(QuotePost.pid, Post.from_uid_pid), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
     const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = Math.floor(Date.now() / 1000) > (thread.sort + 604800)
+    const thread_lock = Math.floor(Date.now() / 1000) > (thread.sort_time + 604800)
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 
@@ -392,9 +392,9 @@ export async function pJump(a: Context) {
             // tid
             eq(Post.tid, tid),
             // time
-            lte(Post.sort, time),
+            lte(Post.sort_time, time),
         ))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)

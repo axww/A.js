@@ -31,7 +31,7 @@ export async function _mList(a: Context) {
         ))
         .leftJoin(Post, eq(Post.pid, Message.pid))
         .leftJoin(User, eq(User.uid, Post.uid))
-        .leftJoin(QuotePost, eq(QuotePost.pid, Post.clue))
+        .leftJoin(QuotePost, eq(QuotePost.pid, Post.from_uid_pid))
         .orderBy(desc(Message.uid), desc(Message.type), desc(Message.pid))
         .limit(10)
     await Promise.all(data.map(async function (row) {

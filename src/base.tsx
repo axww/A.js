@@ -43,13 +43,13 @@ export const Post = sqliteTable("post", {
     tid: integer().notNull().default(0),
     uid: integer().notNull().default(0),
     type: integer().notNull().default(0),
-    sort: integer().notNull().default(0), // T:last_time P:post_time
-    clue: integer().notNull().default(0), // T:last_uid P:quote_pid
     time: integer().notNull().default(0),
+    sort_time: integer().notNull().default(0), // T:last_time P:post_time
+    from_uid_pid: integer().notNull().default(0), // T:last_uid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
-    index("post:type,tid,sort").on(table.type, table.tid, table.sort),
-    index("post:type,uid,tid,sort").on(table.type, table.uid, table.tid, table.sort),
+    index("post:type,tid,sort_time").on(table.type, table.tid, table.sort_time),
+    index("post:type,uid,tid,sort_time").on(table.type, table.uid, table.tid, table.sort_time),
 ]);
 
 export const User = sqliteTable("user", {
