@@ -86,7 +86,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.uid,
                 tid: Thread.pid,
-                last_time: Thread.sort_time,
+                last_time: Thread.last_time,
             })
             .from(Post)
             .where(and(
@@ -106,7 +106,7 @@ export async function pSave(a: Context) {
                     tid: quote.tid,
                     uid: i.uid,
                     time,
-                    sort_time: time,
+                    last_time: time,
                     from_uid_pid: quote.pid,
                     content,
                 })
@@ -115,7 +115,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort_time: time,
+                    last_time: time,
                     from_uid_pid: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
@@ -158,7 +158,7 @@ export async function pSave(a: Context) {
                 .values({
                     uid: i.uid,
                     time,
-                    sort_time: time,
+                    last_time: time,
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -267,10 +267,12 @@ export async function pOmit(a: Context) {
                 .where(and(
                     // type
                     eq(Post.type, 0),
+                    // uid
+                    eq(Post.uid, 0),
                     // tid
                     eq(Post.tid, post.tid),
                 ))
-                .orderBy(desc(Post.type), desc(Post.tid), desc(Post.sort_time))
+                .orderBy(desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -285,7 +287,7 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    sort_time: sql`COALESCE((SELECT time FROM ${last}),${Post.time})`,
+                    last_time: sql`COALESCE((SELECT time FROM ${last}),${Post.time})`,
                     from_uid_pid: sql`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
@@ -362,19 +364,21 @@ export async function pList(a: Context) {
         .where(and(
             // type
             eq(Post.type, 0),
+            // uid
+            eq(Post.uid, 0),
             // tid
             eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.from_uid_pid, Post.tid), eq(QuotePost.pid, Post.from_uid_pid), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
+        .orderBy(asc(Post.type), asc(Post.uid), asc(Post.tid), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
     const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = Math.floor(Date.now() / 1000) > (thread.sort_time + 604800)
+    const thread_lock = Math.floor(Date.now() / 1000) > (thread.last_time + 604800)
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 
@@ -389,12 +393,14 @@ export async function pJump(a: Context) {
         .where(and(
             // type
             eq(Post.type, 0),
+            // uid
+            eq(Post.uid, 0),
             // tid
             eq(Post.tid, tid),
             // time
-            lte(Post.sort_time, time),
+            lte(Post.time, time),
         ))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
+        .orderBy(asc(Post.type), asc(Post.uid), asc(Post.tid), asc(Post.time))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)

@@ -36,16 +36,16 @@ export async function tList(a: Context) {
         .from(Post)
         .where(and(
             inArray(Post.type, [0, 1]),
-            uid ? eq(Post.uid, uid) : undefined,
-            eq(Post.tid, 0),
+            uid ? eq(Post.uid, uid) : eq(Post.quote_uid, 0),
+            uid ? eq(Post.tid, 0) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(LastUser, eq(LastUser.uid, Post.from_uid_pid))
         .leftJoin(Count, eq(Count.uid_tid, Post.pid))
         .orderBy(...(uid ?
-            [desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.sort_time)]
+            [desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.time)]
             :
-            [desc(Post.type), desc(Post.tid), desc(Post.sort_time)]
+            [desc(Post.type), desc(Post.quote_uid), desc(Post.last_time)]
         ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
