@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
-import { eq } from 'drizzle-orm';
-import { DB, Conf, I, User } from "./base";
+import { eq, and, desc, getTableColumns } from 'drizzle-orm';
+import { DB, Conf, I, Post, User } from "./base";
 
 export class Maps {
     // 存储 map 的内存容器
@@ -71,8 +71,25 @@ export async function Auth(a: Context) {
     if (!jwt) { return undefined }
     let auth = await verify(jwt, await Config.get<string>(a, 'secret_key')) as { uid: number }
     if (!auth.uid) { return undefined }
+    const message = DB(a).$with('message').as(
+        DB(a)
+            .select({
+                time: Post.time,
+            })
+            .from(Post)
+            .where(and(
+                eq(Post.type, 0),
+                eq(Post.quote_uid, auth.uid),
+            ))
+            .orderBy(desc(Post.type), desc(Post.quote_uid), desc(Post.sort_time))
+            .limit(1)
+    )
     const user = (await DB(a)
-        .select()
+        .with(message)
+        .select({
+            ...getTableColumns(User),
+            last_message: message.time,
+        })
         .from(User)
         .where(eq(User.uid, auth.uid))
     )?.[0]

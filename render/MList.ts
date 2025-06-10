@@ -280,10 +280,7 @@ function addMessageCard(row, list, messageType) {
 
 function getTimeAgo(timestamp) {
     if (!timestamp) return '';
-    
-    const now = Math.floor(Date.now() / 1000);
-    const secondsAgo = now - timestamp;
-    
+    const secondsAgo = Math.floor(Date.now() / 1000) - timestamp;
     if (secondsAgo < 60) {
         return '刚刚';
     } else if (secondsAgo < 3600) {

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { csrf } from 'hono/csrf';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
-import { _mClear, _mList, _mRead, mList } from './message';
+import { _mClear, _mList, mList } from './message';
 import { pJump, pEdit, pList, pOmit, pSave } from './post';
 import { tList, tPeak } from './thread';
 import { uAuth, uLogin, uLogout, uRegister, uConf, uSave } from './user';
@@ -29,7 +29,6 @@ app.post('/register', uRegister);
 app.get('/m', mList);
 app.get('/_mList', _mList);
 app.get('/_mClear', _mClear);
-app.get('/_mRead', _mRead);
 
 app.post('/f', bodyLimit({
   maxSize: 10 * 1024 * 1024, // MB

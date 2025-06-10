@@ -22,30 +22,14 @@ export const Count = sqliteTable("count", {
     quantity: integer().notNull().default(0),
 });
 
-export const Message = sqliteTable("message", {
-    uid: integer().notNull().default(0), // 向哪个用户发送的消息
-    type: integer().notNull().default(0), // 消息类别 1:回复提醒 -1:已读回复提醒
-    pid: integer().notNull().default(0), // 关联帖子
-    /*
-    pid 足够了，数据列越少越好。
-    根据 pid 可以递归查询所在主题、发帖人。
-    post将来也可以存储用户私信，管理员消息。
-    不要建立主键ID！因为无法追溯，完全多余。
-    比如用户删除掉一条回复，系统也要删除被回复用户的消息。
-    通过 uid_type_time_pid 才可以找到相应的消息，用主键无法定位。
-    */
-}, (table) => [
-    index("message:uid,type,pid").on(table.uid, table.type, table.pid),
-]);
-
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
     tid: integer().notNull().default(0),
     uid: integer().notNull().default(0),
     type: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     time: integer().notNull().default(0),
-    last_time: integer().notNull().default(0), // T:last_time P:post_time
-    quote_uid: integer().notNull().default(0), // T:0 P:quote_uid
+    sort_time: integer().notNull().default(0), // T:sort_time P:post_time
+    quote_uid: integer().notNull().default(0), // T:0 P:quote_uid -quote_uid(Self/Block)
     from_uid_pid: integer().notNull().default(0), // T:last_uid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
@@ -54,7 +38,7 @@ export const Post = sqliteTable("post", {
     // uid!=0,tid=0,特定用户帖子
     // uid=0,tid!=0,帖内回复
     // uid!=0,tid!=0,帖内特定用户回复
-    index("post:type,quote_uid,last_time").on(table.type, table.quote_uid, table.last_time),
+    index("post:type,quote_uid,sort_time").on(table.type, table.quote_uid, table.sort_time),
     // quote_uid=0,首页帖子按最后回复时间排序
     // quote_uid!=0,被回复用户的消息列表
 ]);
@@ -69,11 +53,13 @@ export const User = sqliteTable("user", {
     salt: text().notNull().default(''),
     credits: integer().notNull().default(0),
     golds: integer().notNull().default(0),
-    messages: integer().notNull().default(0),
-    last_time: integer().notNull().default(0),
+    last_post: integer().notNull().default(0),
+    last_read: integer().notNull().default(0),
 });
 
-export type I = Omit<typeof User.$inferSelect, "hash" | "salt">
+export type I = Omit<typeof User.$inferSelect, "hash" | "salt"> & {
+    last_message: number;
+};
 
 export interface Props {
     i: I | undefined
