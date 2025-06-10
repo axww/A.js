@@ -39,7 +39,7 @@ export async function pEdit(a: Context) {
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
                 IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能编辑
-                IsAdmin(i, undefined, gt(sql`${Post.time} + 604800`, Math.floor(Date.now() / 1000))), // 7天后禁止编辑
+                IsAdmin(i, undefined, gt(sql<number>`${Post.time} + 604800`, Math.floor(Date.now() / 1000))), // 7天后禁止编辑
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
@@ -70,7 +70,7 @@ export async function pSave(a: Context) {
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
                 IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能编辑
-                IsAdmin(i, undefined, gt(sql`${Post.time} + 604800`, time)), // 7天后禁止编辑
+                IsAdmin(i, undefined, gt(sql<number>`${Post.time} + 604800`, time)), // 7天后禁止编辑
             ))
             .returning({ pid: Post.pid })
         )?.[0]
@@ -91,7 +91,7 @@ export async function pSave(a: Context) {
                 eq(Post.pid, eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能回复
             ))
-            .leftJoin(Thread, eq(Thread.pid, sql`CASE WHEN ${Post.tid} = 0 THEN ${Post.pid} ELSE ${Post.tid} END`))
+            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.tid} = 0 THEN ${Post.pid} ELSE ${Post.tid} END`))
         )?.[0]
         if (!quote || quote.tid === null || quote.sort_time === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
         if (time > quote.sort_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
@@ -126,14 +126,14 @@ export async function pSave(a: Context) {
                 ])
                 .onConflictDoUpdate({
                     target: Meta.uid_tid,
-                    set: { count: sql`${Meta.count} + 1` }
+                    set: { count: sql<number>`${Meta.count} + 1` }
                 })
             ,
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql`${User.credits} + 1`,
-                    golds: sql`${User.golds} + 1`,
+                    credits: sql<number>`${User.credits} + 1`,
+                    golds: sql<number>`${User.golds} + 1`,
                     last_post: time,
                 })
                 .where(eq(User.uid, i.uid))
@@ -164,14 +164,14 @@ export async function pSave(a: Context) {
                 ])
                 .onConflictDoUpdate({
                     target: Meta.uid_tid,
-                    set: { count: sql`${Meta.count} + 1` }
+                    set: { count: sql<number>`${Meta.count} + 1` }
                 })
             ,
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql`${User.credits} + 2`,
-                    golds: sql`${User.golds} + 2`,
+                    credits: sql<number>`${User.credits} + 2`,
+                    golds: sql<number>`${User.golds} + 2`,
                     last_post: time,
                 })
                 .where(eq(User.uid, i.uid))
@@ -222,15 +222,15 @@ export async function pOmit(a: Context) {
             DB(a)
                 .update(Meta)
                 .set({
-                    count: sql`${Meta.count} - 1`,
+                    count: sql<number>`${Meta.count} - 1`,
                 })
                 .where(inArray(Meta.uid_tid, [post.uid, 0]))
             ,
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql`${User.credits} - 2`,
-                    golds: sql`${User.golds} - 2`,
+                    credits: sql<number>`${User.credits} - 2`,
+                    golds: sql<number>`${User.golds} - 2`,
                 })
                 .where(eq(User.uid, post.uid))
             ,
@@ -267,23 +267,23 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    sort_time: sql`COALESCE((SELECT time FROM ${last}),${Post.time})`,
-                    from_uid_pid: sql`(SELECT COALESCE(uid,0) FROM ${last})`,
+                    sort_time: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
+                    from_uid_pid: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
             ,
             DB(a)
                 .update(Meta)
                 .set({
-                    count: sql`${Meta.count} - 1`,
+                    count: sql<number>`${Meta.count} - 1`,
                 })
                 .where(eq(Meta.uid_tid, post.tid))
             ,
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql`${User.credits} - 1`,
-                    golds: sql`${User.golds} - 1`,
+                    credits: sql<number>`${User.credits} - 1`,
+                    golds: sql<number>`${User.golds} - 1`,
                 })
                 .where(eq(User.uid, post.uid))
             ,

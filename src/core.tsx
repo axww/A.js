@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
-import { eq, and, desc, getTableColumns } from 'drizzle-orm';
+import { eq, and, desc, getTableColumns, sql } from 'drizzle-orm';
 import { DB, Conf, I, Post, User } from "./base";
 
 export class Maps {
@@ -88,7 +88,7 @@ export async function Auth(a: Context) {
         .with(message)
         .select({
             ...getTableColumns(User),
-            last_message: message.time,
+            last_message: sql<number>`(SELECT COALESCE(time,0) FROM ${message})`,
         })
         .from(User)
         .where(eq(User.uid, auth.uid))

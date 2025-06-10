@@ -66,7 +66,7 @@ export async function tPeak(a: Context) {
     const post = (await DB(a)
         .update(Post)
         .set({
-            type: sql`CASE WHEN ${Post.type} = 0 THEN 1 ELSE 0 END`,
+            type: sql<number>`CASE WHEN ${Post.type} = 0 THEN 1 ELSE 0 END`,
         })
         .where(and(
             eq(Post.pid, tid),
