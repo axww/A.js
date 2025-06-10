@@ -29,18 +29,14 @@ export const Post = sqliteTable("post", {
     type: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     time: integer().notNull().default(0),
     sort_time: integer().notNull().default(0), // T:sort_time P:post_time
-    quote_uid: integer().notNull().default(0), // T:0 P:quote_uid -quote_uid(Self/Block)
-    from_uid_pid: integer().notNull().default(0), // T:last_uid P:quote_pid
+    pivot_uid: integer().notNull().default(0), // T:uid P:-quote_uid N:0
+    relate_id: integer().notNull().default(0), // T:last_uid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
-    index("post:type,uid,tid,time").on(table.type, table.uid, table.tid, table.time),
-    // uid=0,tid=0,首页帖子
-    // uid!=0,tid=0,特定用户帖子
-    // uid=0,tid!=0,帖内回复
-    // uid!=0,tid!=0,帖内特定用户回复
-    index("post:type,quote_uid,sort_time").on(table.type, table.quote_uid, table.sort_time),
-    // quote_uid=0,首页帖子按最后回复时间排序
-    // quote_uid!=0,被回复用户的消息列表
+    index("post:type,tid,sort_time").on(table.type, table.tid, table.sort_time),
+    // tid=0,首页帖子
+    // tid!=0,帖内回复
+    index("post:type,pivot_uid,time").on(table.type, table.pivot_uid, table.time),
 ]);
 
 export const User = sqliteTable("user", {

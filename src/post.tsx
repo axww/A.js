@@ -105,8 +105,8 @@ export async function pSave(a: Context) {
                     uid: i.uid,
                     time,
                     sort_time: time,
-                    quote_uid: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
-                    from_uid_pid: quote.pid,
+                    pivot_uid: (i.uid != quote.uid) ? quote.uid : 0, // 如果回复的是自己则隐藏
+                    relate_id: quote.pid,
                     content,
                 })
                 .returning({ pid: Post.pid })
@@ -115,7 +115,7 @@ export async function pSave(a: Context) {
                 .update(Post)
                 .set({
                     sort_time: time,
-                    from_uid_pid: i.uid,
+                    relate_id: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -192,7 +192,7 @@ export async function pOmit(a: Context) {
             pid: Post.pid,
             uid: Post.uid,
             tid: Post.tid,
-            from_uid_pid: Post.from_uid_pid,
+            relate_id: Post.relate_id,
         })
         .from(Post)
         .where(and(
@@ -268,7 +268,7 @@ export async function pOmit(a: Context) {
                 .update(Post)
                 .set({
                     sort_time: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
-                    from_uid_pid: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
+                    relate_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
             ,
@@ -338,7 +338,7 @@ export async function pList(a: Context) {
             eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.from_uid_pid, Post.tid), eq(QuotePost.pid, Post.from_uid_pid), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.relate_id, Post.tid), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
         .orderBy(asc(Post.type), asc(Post.uid), asc(Post.tid), asc(Post.time))
         .offset((page - 1) * page_size_p)
