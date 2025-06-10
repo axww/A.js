@@ -37,6 +37,8 @@ export const Post = sqliteTable("post", {
     // tid=0,首页帖子
     // tid!=0,帖内回复
     index("post:type,pivot_uid,time").on(table.type, table.pivot_uid, table.time),
+    // pivot_uid>0,用户帖子
+    // pivot_uid<0,回复通知
 ]);
 
 export const User = sqliteTable("user", {

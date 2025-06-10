@@ -105,7 +105,7 @@ export async function pSave(a: Context) {
                     uid: i.uid,
                     time,
                     sort_time: time,
-                    pivot_uid: (i.uid != quote.uid) ? quote.uid : 0, // 如果回复的是自己则隐藏
+                    pivot_uid: (i.uid != quote.uid) ? -quote.uid : 0, // 如果回复的是自己则隐藏
                     relate_id: quote.pid,
                     content,
                 })
@@ -153,6 +153,7 @@ export async function pSave(a: Context) {
                     uid: i.uid,
                     time,
                     sort_time: time,
+                    pivot_uid: i.uid,
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -330,17 +331,13 @@ export async function pList(a: Context) {
         })
         .from(Post)
         .where(and(
-            // type
             eq(Post.type, 0),
-            // uid
-            eq(Post.uid, 0),
-            // tid
             eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.relate_id, Post.tid), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.type), asc(Post.uid), asc(Post.tid), asc(Post.time))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]

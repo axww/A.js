@@ -42,11 +42,11 @@ export async function _mList(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.type, 0),
-            eq(Post.pivot_uid, i.uid),
+            eq(Post.pivot_uid, -i.uid),
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.relate_id))
-        .orderBy(desc(Post.type), desc(Post.pivot_uid), desc(Post.sort_time))
+        .orderBy(desc(Post.type), desc(Post.pivot_uid), desc(Post.time))
         .limit(10)
     await Promise.all(data.map(async function (row) {
         row.quote_content = await HTMLText(row.quote_content, 300);
