@@ -17,9 +17,9 @@ export const Conf = sqliteTable("conf", {
     value: text(),
 });
 
-export const Count = sqliteTable("count", {
+export const Meta = sqliteTable("meta", {
     uid_tid: integer().primaryKey(),
-    quantity: integer().notNull().default(0),
+    count: integer().notNull().default(0),
 });
 
 export const Post = sqliteTable("post", {

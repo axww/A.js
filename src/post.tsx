@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { raw } from "hono/html";
 import { and, desc, eq, gt, inArray, ne, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { DB, Post, User, Props, Count } from "./base";
+import { DB, Post, User, Props, Meta } from "./base";
 import { Auth, Config, Pagination, HTMLFilter, IsAdmin, HTMLText } from "./core";
 import { PEdit } from "../render/PEdit";
 import { PList } from "../render/PList";
@@ -120,13 +120,13 @@ export async function pSave(a: Context) {
                 .where(eq(Post.pid, quote.tid))
             ,
             DB(a)
-                .insert(Count)
+                .insert(Meta)
                 .values([
-                    { uid_tid: quote.tid, quantity: 1 },
+                    { uid_tid: quote.tid, count: 1 },
                 ])
                 .onConflictDoUpdate({
-                    target: Count.uid_tid,
-                    set: { quantity: sql`${Count.quantity} + 1` }
+                    target: Meta.uid_tid,
+                    set: { count: sql`${Meta.count} + 1` }
                 })
             ,
             DB(a)
@@ -157,14 +157,14 @@ export async function pSave(a: Context) {
                 }).returning({ pid: Post.pid })
             ,
             DB(a)
-                .insert(Count)
+                .insert(Meta)
                 .values([
-                    { uid_tid: -i.uid, quantity: 1 },
-                    { uid_tid: 0, quantity: 1 },
+                    { uid_tid: -i.uid, count: 1 },
+                    { uid_tid: 0, count: 1 },
                 ])
                 .onConflictDoUpdate({
-                    target: Count.uid_tid,
-                    set: { quantity: sql`${Count.quantity} + 1` }
+                    target: Meta.uid_tid,
+                    set: { count: sql`${Meta.count} + 1` }
                 })
             ,
             DB(a)
@@ -220,11 +220,11 @@ export async function pOmit(a: Context) {
                 .where(eq(Post.tid, post.pid))
             ,
             DB(a)
-                .update(Count)
+                .update(Meta)
                 .set({
-                    quantity: sql`${Count.quantity} - 1`,
+                    count: sql`${Meta.count} - 1`,
                 })
-                .where(inArray(Count.uid_tid, [post.uid, 0]))
+                .where(inArray(Meta.uid_tid, [post.uid, 0]))
             ,
             DB(a)
                 .update(User)
@@ -273,11 +273,11 @@ export async function pOmit(a: Context) {
                 .where(eq(Post.pid, post.tid)) // 更新thread
             ,
             DB(a)
-                .update(Count)
+                .update(Meta)
                 .set({
-                    quantity: sql`${Count.quantity} - 1`,
+                    count: sql`${Meta.count} - 1`,
                 })
-                .where(eq(Count.uid_tid, post.tid))
+                .where(eq(Meta.uid_tid, post.tid))
             ,
             DB(a)
                 .update(User)
@@ -305,7 +305,7 @@ export async function pList(a: Context) {
             gid: User.gid,
             quote_content: sql<string>`''`,
             quote_name: sql<string>`''`,
-            count: Count.quantity,
+            count: Meta.count,
         })
         .from(Post)
         .where(and(
@@ -313,7 +313,7 @@ export async function pList(a: Context) {
             inArray(Post.type, [0, 1]),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(Count, eq(Count.uid_tid, tid))
+        .leftJoin(Meta, eq(Meta.uid_tid, tid))
     )?.[0]
     if (!thread) { return a.notFound() }
     const page = parseInt(a.req.param('page') ?? '0') || 1
