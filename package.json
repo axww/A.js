@@ -17,6 +17,6 @@
     "@hono/vite-dev-server": "^0.19.1",
     "drizzle-kit": "^0.18.1",
     "vite": "^6.3.5",
-    "wrangler": "^4.19.1"
+    "wrangler": "^4.19.2"
   }
 }

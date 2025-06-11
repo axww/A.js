@@ -79,9 +79,9 @@ export async function Auth(a: Context) {
             .from(Post)
             .where(and(
                 eq(Post.type, 0),
-                eq(Post.pivot_uid, -auth.uid),
+                eq(Post.quote_uid, auth.uid),
             ))
-            .orderBy(desc(Post.type), desc(Post.pivot_uid), desc(Post.time))
+            .orderBy(desc(Post.type), desc(Post.quote_uid), desc(Post.sort_time))
             .limit(1)
     )
     const user = (await DB(a)

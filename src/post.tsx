@@ -105,7 +105,7 @@ export async function pSave(a: Context) {
                     uid: i.uid,
                     time,
                     sort_time: time,
-                    pivot_uid: (i.uid != quote.uid) ? -quote.uid : 0, // 如果回复的是自己则隐藏
+                    quote_uid: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
                     relate_id: quote.pid,
                     content,
                 })
@@ -146,14 +146,13 @@ export async function pSave(a: Context) {
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
-            // last_insert_rowid() = post.pid
             DB(a)
                 .insert(Post)
                 .values({
                     uid: i.uid,
                     time,
                     sort_time: time,
-                    pivot_uid: i.uid,
+                    quote_uid: i.uid,
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -248,12 +247,10 @@ export async function pOmit(a: Context) {
                 .where(and(
                     // type
                     eq(Post.type, 0),
-                    // uid
-                    eq(Post.uid, 0),
                     // tid
                     eq(Post.tid, post.tid),
                 ))
-                .orderBy(desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.time))
+                .orderBy(desc(Post.type), desc(Post.tid), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -337,7 +334,7 @@ export async function pList(a: Context) {
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(QuotePost, and(ne(Post.relate_id, Post.tid), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.sort_time))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
@@ -358,14 +355,12 @@ export async function pJump(a: Context) {
         .where(and(
             // type
             eq(Post.type, 0),
-            // uid
-            eq(Post.uid, 0),
             // tid
             eq(Post.tid, tid),
             // time
             lte(Post.time, time),
         ))
-        .orderBy(asc(Post.type), asc(Post.uid), asc(Post.tid), asc(Post.time))
+        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.time))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)
