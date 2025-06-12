@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, lt } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
@@ -13,7 +13,7 @@ export async function _mClear(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                last_read: 0,
+                last_read: Math.floor(Date.now() / 1000),
             })
             .where(
                 eq(User.uid, i.uid),
@@ -27,6 +27,7 @@ export async function _mClear(a: Context) {
 export async function _mList(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
+    const sort_time = parseInt(a.req.query('sort_time') ?? '0')
     const QuotePost = alias(Post, 'QuotePost')
     const data = await DB(a)
         .select({
@@ -43,6 +44,7 @@ export async function _mList(a: Context) {
         .where(and(
             eq(Post.type, 0),
             eq(Post.quote_uid, i.uid),
+            sort_time ? lt(Post.sort_time, sort_time) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.relate_id))

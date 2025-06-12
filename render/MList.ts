@@ -51,8 +51,9 @@ ${Header(a, z)}
 </div>
 
 <script>
-let pid = 0;
 let messageCount = 0;
+let sort_time = 0;
+let last_read = ${z.i.last_read};
 
 async function mClear() {
     try {
@@ -92,8 +93,8 @@ async function mFetch() {
         loadBtn.disabled = true;
         loadBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 加载中...';
         
-        // 调用API，获取所有消息（未读:1和已读:-1）
-        const response = await fetch('/_mList?type=1&type=-1&pid='+pid);
+        // 调用API，获取所有消息
+        const response = await fetch('/_mList?sort_time='+sort_time);
         
         // 检查响应状态
         if (response.status === 401) {
@@ -107,19 +108,19 @@ async function mFetch() {
         }
         
         const data = await response.json();
-        
+
         // 恢复按钮状态
         loadBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg> 加载更多';
         loadBtn.disabled = false;
         
         if (data.length) {
-            pid = data.at(-1).post_pid;
+            sort_time = data.at(-1).post_time;
             messageCount += data.length;
             
             // 分离新消息和已读消息
-            const newMessages = data.filter(row => row.type === 1);
-            const readMessages = data.filter(row => row.type === -1);
-            
+            const newMessages = data.filter(row => row.post_time > last_read);
+            const readMessages = data.filter(row => row.post_time <= last_read);
+
             // 如果是第一页加载且有未读消息，显示未读消息标题
             if (messageCount === data.length && newMessages.length > 0) {
                 const newMessagesHeader = document.createElement('h2');
