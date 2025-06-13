@@ -52,7 +52,7 @@ export async function tList(a: Context) {
     const count = (await DB(a)
         .select()
         .from(Meta)
-        .where(eq(Meta.uid_tid, uid))
+        .where(eq(Meta.uid_tid, -uid))
     )?.[0]?.count
     const pagination = Pagination(page_size_t, count ?? 0, page, 2)
     const title = await Config.get<string>(a, 'site_name')

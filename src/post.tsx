@@ -152,7 +152,6 @@ export async function pSave(a: Context) {
                     uid: i.uid,
                     time,
                     sort_time: time,
-                    quote_uid: i.uid,
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -215,16 +214,19 @@ export async function pOmit(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    type: 1, // 主题被删 所有回复 类型改为1
+                    type: 1, // 主题被删 公开回复 类型改为1
                 })
-                .where(eq(Post.tid, post.pid))
+                .where(and(
+                    eq(Post.type, 0),
+                    eq(Post.tid, post.pid),
+                ))
             ,
             DB(a)
                 .update(Meta)
                 .set({
                     count: sql<number>`${Meta.count} - 1`,
                 })
-                .where(inArray(Meta.uid_tid, [post.uid, 0]))
+                .where(inArray(Meta.uid_tid, [-post.uid, 0]))
             ,
             DB(a)
                 .update(User)
