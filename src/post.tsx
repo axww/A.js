@@ -27,6 +27,7 @@ export interface PListProps extends Props {
 export async function pEdit(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
+    if (i.gid <= -2) { return a.text('403', 403) } // 禁言用户
     const eid = parseInt(a.req.param('eid') ?? '0')
     let title = ""
     let content = ''
@@ -54,6 +55,7 @@ export async function pEdit(a: Context) {
 export async function pSave(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
+    if (i.gid <= -2) { return a.text('403', 403) } // 禁言用户
     const body = await a.req.formData()
     const eid = parseInt(a.req.param('eid') ?? '0')
     const raw = body.get('content')?.toString() ?? ''
@@ -77,6 +79,7 @@ export async function pSave(a: Context) {
         return a.text('ok')
     } else if (eid > 0) { // 回复
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (i.gid == -1 && a.get('time') - i.last_post < 43200) { return a.text('ad_limit_day', 403) } // 广告用户
         const Thread = alias(Post, 'Thread')
         const quote = (await DB(a)
             .select({
@@ -142,6 +145,7 @@ export async function pSave(a: Context) {
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (i.gid == -1 && a.get('time') - i.last_post < 432000) { return a.text('ad_limit_week', 403) } // 广告用户
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([

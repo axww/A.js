@@ -16,6 +16,8 @@ async function post(eid, reload = false) {
             case 'too_fast': errorMsg = '太快了🥵请稍后再试'; break;
             case 'too_old': errorMsg = '帖子太旧已无法回复'; break;
             case 'not_found': errorMsg = '被回复帖子不存在'; break;
+            case 'ad_limit_day': errorMsg = '每天只能回复一次广告'; break;
+            case 'ad_limit_week': errorMsg = '每周只能发表一次广告'; break;
         }
         // 创建一个简单的错误提示
         const alert = document.createElement('div');
