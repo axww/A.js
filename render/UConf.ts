@@ -5,6 +5,14 @@ import { Props } from "../src/base";
 
 export function UConf(a: Context, z: Props) {
   z.i = z.i! // 非空断言
+  let role = "会员";
+  switch (z.i.gid) {
+    case -2: role = '禁言'; break;
+    case -1: role = '广告'; break;
+    case 1: role = '贵宾'; break;
+    case 2: role = '管理'; break;
+    case 3: role = '站长'; break;
+  }
   return html`
 ${Header(a, z)}
 
@@ -41,7 +49,7 @@ ${Header(a, z)}
         <p class="mt-1 text-sm/6 text-gray-600">ID：${z.i.uid}</p>
         <p class="mt-1 text-sm/6 text-gray-600">经验：${z.i.credits}</p>
         <p class="mt-1 text-sm/6 text-gray-600">金币：${z.i.golds}</p>
-        <p class="mt-1 text-sm/6 text-gray-600">职务：${z.i.gid}</p>
+        <p class="mt-1 text-sm/6 text-gray-600">职务：${role}</p>
         <p class="mt-1 text-sm/6 text-gray-600"><a href="/?uid=${z.i.uid}" target="_blank" class="underline">查看我的帖子</a></p>
         </div>
     </div>

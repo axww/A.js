@@ -61,7 +61,7 @@ export async function tList(a: Context) {
 
 export async function tPeak(a: Context) {
     const i = await Auth(a)
-    if (!i || i.gid != 1) { return a.text('401', 401) }
+    if (!i || i.gid < 2) { return a.text('401', 401) }
     const tid = parseInt(a.req.param('tid') ?? '0')
     const post = (await DB(a)
         .update(Post)

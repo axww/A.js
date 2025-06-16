@@ -3,7 +3,7 @@ import { raw } from "hono/html";
 import { and, desc, eq, gt, inArray, ne, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User, Props, Meta } from "./base";
-import { Auth, Config, Pagination, HTMLFilter, IsAdmin, HTMLText } from "./core";
+import { Auth, Config, Pagination, HTMLFilter, HTMLText } from "./core";
 import { PEdit } from "../render/PEdit";
 import { PList } from "../render/PList";
 
@@ -38,8 +38,8 @@ export async function pEdit(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
-                IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能编辑
-                IsAdmin(i, undefined, gt(sql<number>`${Post.time} + 604800`, Math.floor(Date.now() / 1000))), // 7天后禁止编辑
+                (i.gid >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.gid >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, Math.floor(Date.now() / 1000)), // 7天后禁止编辑
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
@@ -69,8 +69,8 @@ export async function pSave(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
-                IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能编辑
-                IsAdmin(i, undefined, gt(sql<number>`${Post.time} + 604800`, time)), // 7天后禁止编辑
+                (i.gid >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.gid >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, time), // 7天后禁止编辑
             ))
             .returning({ pid: Post.pid })
         )?.[0]
@@ -196,7 +196,7 @@ export async function pOmit(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.pid, pid),
-            IsAdmin(i, undefined, eq(Post.uid, i.uid)), // 管理和作者都能删除
+            (i.gid >= 2) ? undefined : eq(Post.uid, i.uid), // 管理和作者都能删除
         ))
     )?.[0]
     // 如果无权限或帖子不存在则报错

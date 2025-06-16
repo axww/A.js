@@ -98,15 +98,6 @@ export async function Auth(a: Context) {
     return i
 }
 
-export function IsAdmin(i: I, allow: any, disallow: any) {
-    // 是否拥有管理权限 是则返回 allow 否则返回 disallow
-    if ([1].includes(i.gid)) {
-        return allow;
-    } else {
-        return disallow;
-    }
-}
-
 export function Pagination(perPage: number, sum: number, page: number, near: number) {
     if (!page) { page = 1 }
     // 首页
