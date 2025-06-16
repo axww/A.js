@@ -4,40 +4,6 @@ import { Header, Footer } from "./Common";
 import { HTMLText, URLQuery } from "../src/core";
 import { PListProps } from "../src/post";
 
-// 预定义颜色调色板（移至顶层避免重复创建）
-const AVATAR_COLORS = [
-    'hsl(4, 90%, 58%)',    // 红色
-    'hsl(340, 82%, 52%)',  // 玫红
-    'hsl(262, 67%, 58%)',  // 紫色
-    'hsl(210, 90%, 60%)',  // 蓝色
-    'hsl(199, 98%, 48%)',  // 青色
-    'hsl(162, 73%, 46%)',  // 绿色
-    'hsl(141, 78%, 42%)',  // 浅绿
-    'hsl(39, 100%, 50%)',  // 橙色
-    'hsl(27, 96%, 61%)',   // 橘色
-    'hsl(15, 86%, 57%)'    // 红橙
-];
-
-// 根据字符串生成一致的颜色
-function generateColorFromString(str: string | null): string {
-    if (!str) return AVATAR_COLORS[0]; // 默认颜色
-
-    // 简化的哈希算法
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 3) - hash);
-    }
-
-    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-// 获取用户名的首字母
-function getInitials(name: string | null): string {
-    if (!name) return '?';
-    // 直接返回首字符并大写（适用于中英文）
-    return name.charAt(0).toUpperCase();
-}
-
 export function PList(a: Context, z: PListProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
@@ -149,18 +115,14 @@ ${Header(a, z)}
                         ${raw(item.content)}
                     </div>
                     <div class="divider my-0"></div>
-                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm pt-2">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm pt-2 text-base-content/70">
                         <div class="flex items-center gap-2 min-w-0">
-                            <a href="/?uid=${item.uid}" target="_blank" class="flex-shrink-0">
-                                <div class="avatar-letter" style="background-color: ${generateColorFromString(item.name)}">
-                                    <span>${getInitials(item.name)}</span>
-                                </div>
-                            </a>
-                            <a href="/?uid=${item.uid}" target="_blank" class="link link-hover truncate max-w-[120px]">
-                                ${item.name || '(匿名)'}
-                            </a>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <a href="/?uid=${item.uid}" target="_blank" class="link link-hover truncate max-w-[120px] role-${item.gid}">${item.name}</a>
                         </div>
-                        <span class="flex items-center gap-2 opacity-70">
+                        <span class="flex items-center gap-2 min-w-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
