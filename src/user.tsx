@@ -57,16 +57,15 @@ export async function uRegister(a: Context) {
     const acct = body.get('acct')?.toString().toLowerCase() ?? ''
     const pass = body.get('pass')?.toString() ?? ''
     if (!acct || !pass) { return a.notFound() }
-    const time = Math.floor(Date.now() / 1000)
     let rand = RandomString(16);
     const user = (await DB(a)
         .insert(User)
         .values({
             mail: acct,
-            name: '#' + time,
+            name: '#' + a.get('time'),
             hash: await MD5(pass + rand),
             salt: rand,
-            time,
+            time: a.get('time'),
         })
         .onConflictDoNothing()
         .returning()
@@ -79,7 +78,6 @@ export async function uRegister(a: Context) {
         console.error('JWT signing failed:', error);
         return a.text('500', 500);
     }
-
 }
 
 export async function uSave(a: Context) {

@@ -13,7 +13,7 @@ export async function _mClear(a: Context) {
         await DB(a)
             .update(User)
             .set({
-                last_read: Math.floor(Date.now() / 1000),
+                last_read: a.get('time'),
             })
             .where(
                 eq(User.uid, i.uid),
