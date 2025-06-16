@@ -3717,11 +3717,11 @@ html:has(.drawer-toggle:checked) {
 
 /* 用户组颜色 */
 
-.role-1 {
+.role_1 {
   color: #FB9E3A;
 }
 
-.role-2,
-.role-3 {
+.role_2,
+.role_3 {
   color: #F564A9;
 }
