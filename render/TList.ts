@@ -71,7 +71,7 @@ ${Header(a, z)}
             <div class="join shadow-sm">
                 ${z.pagination.map(item => html`
                     ${item ? html`
-                        <a href="/${item}${URLQuery(a)}" 
+                        <a href="/${URLQuery(a, { 'page': item.toString() })}" 
                            class="join-item btn btn-sm ${item == z.page ? 'btn-primary' : 'btn-ghost'}">${item ? item : '...'}</a>
                     ` : html`
                         <span class="join-item btn btn-sm btn-ghost">...</span>

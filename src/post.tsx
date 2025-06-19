@@ -319,7 +319,7 @@ export async function pList(a: Context) {
         .leftJoin(Meta, eq(Meta.uid_tid, tid))
     )?.[0]
     if (!thread) { return a.notFound() }
-    const page = parseInt(a.req.param('page') ?? '0') || 1
+    const page = parseInt(a.req.query('page') ?? '0') || 1
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const data = [thread, ...await DB(a)
         .select({

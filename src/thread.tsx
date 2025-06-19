@@ -6,7 +6,6 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { TList } from "../render/TList";
 
 export interface TListProps extends Props {
-    uid: number
     page: number
     pagination: number[]
     data: (typeof Post.$inferSelect & {
@@ -20,8 +19,8 @@ export interface TListProps extends Props {
 
 export async function tList(a: Context) {
     const i = await Auth(a)
-    const page = parseInt(a.req.param('page') ?? '0') || 1
-    const uid = parseInt(a.req.query('uid') ?? '0')
+    const page = parseInt(a.req.query('page') ?? '0') || 1
+    const user = parseInt(a.req.query('user') ?? '0')
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const LastUser = alias(User, 'LastUser')
     const data = await DB(a)
@@ -36,13 +35,13 @@ export async function tList(a: Context) {
         .from(Post)
         .where(and(
             inArray(Post.type, [0, 1]),
-            uid ? eq(Post.uid, uid) : eq(Post.quote_uid, 0),
-            uid ? eq(Post.tid, 0) : undefined,
+            user ? eq(Post.uid, user) : eq(Post.quote_uid, 0),
+            user ? eq(Post.tid, 0) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(LastUser, eq(LastUser.uid, Post.relate_id))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
-        .orderBy(...(uid ?
+        .orderBy(...(user ?
             [desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.time)]
             :
             [desc(Post.type), desc(Post.quote_uid), desc(Post.sort_time)]
@@ -52,11 +51,11 @@ export async function tList(a: Context) {
     const count = (await DB(a)
         .select()
         .from(Meta)
-        .where(eq(Meta.uid_tid, -uid))
+        .where(eq(Meta.uid_tid, -user))
     )?.[0]?.count
     const pagination = Pagination(page_size_t, count ?? 0, page, 2)
     const title = await Config.get<string>(a, 'site_name')
-    return a.html(TList(a, { i, uid, page, pagination, data, title }));
+    return a.html(TList(a, { i, page, pagination, data, title }));
 }
 
 export async function tPeak(a: Context) {

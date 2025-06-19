@@ -50,7 +50,7 @@ ${Header(a, z)}
         <p class="mt-1 text-sm/6 text-gray-600">经验：${z.i.credits}</p>
         <p class="mt-1 text-sm/6 text-gray-600">金币：${z.i.golds}</p>
         <p class="mt-1 text-sm/6 text-gray-600">职务：${role}</p>
-        <p class="mt-1 text-sm/6 text-gray-600"><a href="/?uid=${z.i.uid}" target="_blank" class="underline">查看我的帖子</a></p>
+        <p class="mt-1 text-sm/6 text-gray-600"><a href="/?user=${z.i.uid}" target="_blank" class="underline">查看我的帖子</a></p>
         </div>
     </div>
     <div class="mt-6 flex items-center justify-end gap-x-6">

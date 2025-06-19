@@ -214,14 +214,25 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
         || '...'
 }
 
-export function URLQuery(a: Context) {
-    const allow = ['uid', 'pid'];
+export function URLQuery(a: Context, newParams: { [key: string]: string }) {
+    const allow = ['page', 'user'];
+    const oldParams = a.req.query();
     const query = new URLSearchParams();
-    Object.entries(a.req.query()).forEach(([key, val]) => {
-        if (allow.includes(key)) {
-            query.append(key, val);
+    for (let key of allow) {
+        // 优先使用新参数覆盖老参数
+        if (key in newParams) {
+            // 增加或覆盖参数
+            if (newParams[key]) {
+                query.append(key, newParams[key]);
+            }
+            // 参数被删除（传入空白字符串）
+            continue;
         }
-    });
+        // 新参数没有时再继承老参数
+        if (key in oldParams) {
+            query.append(key, oldParams[key]);
+        }
+    }
     return query.size ? '?' + query.toString() : '';
 }
 
