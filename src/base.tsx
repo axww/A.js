@@ -51,8 +51,8 @@ export const User = sqliteTable("user", {
     hash: text().notNull().default(''),
     salt: text().notNull().default(''),
     group: integer().notNull().default(0), // 0用户 1贵宾 2管理 3站长
-    credits: integer().notNull().default(0),
     golds: integer().notNull().default(0),
+    credits: integer().notNull().default(0),
     last_post: integer().notNull().default(0),
     last_read: integer().notNull().default(0),
 });

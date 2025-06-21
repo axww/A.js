@@ -134,8 +134,8 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql<number>`${User.credits} + 1`,
                     golds: sql<number>`${User.golds} + 1`,
+                    credits: sql<number>`${User.credits} + 1`,
                     last_post: a.get('time'),
                 })
                 .where(eq(User.uid, i.uid))
@@ -172,8 +172,8 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql<number>`${User.credits} + 2`,
                     golds: sql<number>`${User.golds} + 2`,
+                    credits: sql<number>`${User.credits} + 2`,
                     last_post: a.get('time'),
                 })
                 .where(eq(User.uid, i.uid))
@@ -234,8 +234,8 @@ export async function pOmit(a: Context) {
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql<number>`${User.credits} - 2`,
                     golds: sql<number>`${User.golds} - 2`,
+                    credits: sql<number>`${User.credits} - 2`,
                 })
                 .where(eq(User.uid, post.uid))
             ,
@@ -285,8 +285,8 @@ export async function pOmit(a: Context) {
             DB(a)
                 .update(User)
                 .set({
-                    credits: sql<number>`${User.credits} - 1`,
                     golds: sql<number>`${User.golds} - 1`,
+                    credits: sql<number>`${User.credits} - 1`,
                 })
                 .where(eq(User.uid, post.uid))
             ,
