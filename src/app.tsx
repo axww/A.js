@@ -2,10 +2,10 @@ import { Hono } from 'hono';
 import { csrf } from 'hono/csrf';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
-import { _mClear, _mList, mList } from './message';
+import { mClear, mData, mList } from './message';
 import { pJump, pEdit, pList, pOmit, pSave } from './post';
 import { tList, tPeak } from './thread';
-import { uAuth, uLogin, uLogout, uRegister, uConf, uSave } from './user';
+import { uAuth, uLogin, uLogout, uRegister, uConf, uSave, uAdv } from './user';
 
 declare module 'hono' { interface ContextVariableMap { time: number } }
 const app = new Hono();
@@ -28,9 +28,11 @@ app.post('/login', uLogin);
 app.post('/logout', uLogout);
 app.post('/register', uRegister);
 
+app.put('/uAdv/:uid{[-0-9]+}', uAdv);
+
 app.get('/m', mList);
-app.get('/_mList', _mList);
-app.get('/_mClear', _mClear);
+app.get('/mData', mData);
+app.get('/mClear', mClear);
 
 app.post('/f', bodyLimit({
   maxSize: 10 * 1024 * 1024, // MB

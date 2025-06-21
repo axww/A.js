@@ -117,6 +117,26 @@ async function pin(tid) {
     }
 }
 
+// 标记广告账号
+async function adv(uid) {
+    try {
+        const response = await fetch('/uAdv/' + uid, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('标记广告失败');
+        }
+    } catch (error) {
+        console.error('标记广告出错:', error);
+        alert('标记广告失败');
+    }
+}
+
 // 上传文件
 function upload() {
     const input = document.createElement('input');

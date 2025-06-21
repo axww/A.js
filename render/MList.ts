@@ -62,7 +62,7 @@ async function mClear() {
         }
         
         // 调用API清空消息
-        const response = await fetch('/_mClear');
+        const response = await fetch('/mClear');
         
         // 检查响应状态
         if (response.status === 401) {
@@ -94,7 +94,7 @@ async function mFetch() {
         loadBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 加载中...';
         
         // 调用API，获取所有消息
-        const response = await fetch('/_mList?sort_time='+sort_time);
+        const response = await fetch('/mData?sort_time='+sort_time);
         
         // 检查响应状态
         if (response.status === 401) {
@@ -295,33 +295,6 @@ function getTimeAgo(timestamp) {
         return date.getFullYear() + '-' + 
                ('0' + (date.getMonth() + 1)).slice(-2) + '-' + 
                ('0' + date.getDate()).slice(-2);
-    }
-}
-
-// 标记消息为已读
-async function markAsRead(pid) {
-    try {
-        const response = await fetch('/_mRead?pid=' + pid);
-        
-        // 检查响应状态
-        if (response.status === 401) {
-            // 未授权，重定向到登录页
-            window.location.href = '/auth';
-            return;
-        }
-        
-        if (!response.ok) {
-            throw new Error('网络请求失败: ' + response.status);
-            return;
-        }
-        
-        // 视觉上标记为已读 - 移除卡片
-        const card = document.querySelector('[data-pid="' + pid + '"]');
-        if (card) {
-            card.remove();
-        }
-    } catch (error) {
-        console.error('标记已读失败:', error);
     }
 }
 

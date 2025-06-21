@@ -6,7 +6,7 @@ import { Auth, HTMLText } from "./core";
 import { MList } from "../render/MList";
 
 // 清空消息
-export async function _mClear(a: Context) {
+export async function mClear(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     try {
@@ -24,7 +24,7 @@ export async function _mClear(a: Context) {
     return a.json('ok')
 }
 
-export async function _mList(a: Context) {
+export async function mData(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     const sort_time = parseInt(a.req.query('sort_time') ?? '0')
