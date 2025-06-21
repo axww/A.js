@@ -169,9 +169,10 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
     if (!html) { return ''; }
     let text = '';
     let stop = false;
+    let pregap = false;
     await new HTMLRewriter().on('*', {
         element: e => {
-            if (stop) { return }
+            if (stop) { return; }
             if (['p', 'br', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(e.tagName)) {
                 // 如果只取首行 且遇到换行符 则标签结束时停止
                 if (first) {
@@ -180,29 +181,34 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
                         if (text) { stop = true }
                     })
                 } else {
-                    text += ' '
+                    // 在新段落前空行
+                    pregap = true;
                 }
             }
         },
         text: t => {
-            if (stop) { return }
-            if (t.text) {
-                text += t.text
-                    .replace(/&amp;/g, "&")
-                    .replace(/&lt;/g, "<")
-                    .replace(/&gt;/g, ">")
-                    .replace(/&quot;/g, '"')
-                    .replace(/&#39;/g, "'")
-                    .replace(/&nbsp;/g, " ")
-                    .trim()
-                if (text.length >= len) {
-                    if (text.length > len) {
-                        text = text.slice(0, len - 3) + '...';
-                    }
-                    stop = true;
-                    return;
+            if (stop || !t.text.trim()) { return; }
+            // 本元素开头是空格
+            if (/\s/.test(t.text.at(0) ?? '')) { pregap = true; }
+            // 本元素拼接到字符串
+            text += (pregap ? ' ' : '') + t.text
+                .replace(/&amp;/g, "&")
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&nbsp;/g, " ")
+                .trim()
+            // 字符串大于指定长度则停止
+            if (text.length >= len) {
+                if (text.length > len) {
+                    text = text.slice(0, len - 3) + '...';
                 }
+                stop = true;
+                return;
             }
+            // 记录本元素结尾是否是空格
+            pregap = /\s/.test(t.text.at(-1) ?? '')
         },
     }).transform(new Response(html, { headers: { "Content-Type": "text/html" } })).text();
     return text
@@ -211,6 +217,7 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
         .replace(/>/g, "&gt;")
         .replace(/"/g, '&quot;')
         .replace(/'/g, "&#39;")
+        .trim()
         || '...'
 }
 
