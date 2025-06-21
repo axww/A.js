@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
 import { eq, and, desc, getTableColumns, sql } from 'drizzle-orm';
-import { DB, Conf, I, Post, User } from "./base";
+import { DB, Conf, Post, User } from "./base";
 
 export class Maps {
     // 存储 map 的内存容器
