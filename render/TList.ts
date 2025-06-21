@@ -46,7 +46,7 @@ ${Header(a, z)}
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                         </svg>
-                                        <span class="truncate">最后回复: ${item.last_name}</span>
+                                        <span class="truncate">最后回复: <span class="role_${item.gid}">${item.last_name}</span></span>
                                         <span class="date whitespace-nowrap flex-shrink-0" time_stamp="${item.sort_time}"></span>
                                     </div>
                                 ` : ''}
