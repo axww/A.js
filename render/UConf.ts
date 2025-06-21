@@ -6,7 +6,7 @@ import { Props } from "../src/base";
 export function UConf(a: Context, z: Props) {
   z.i = z.i! // 非空断言
   let role = "会员";
-  switch (z.i.gid) {
+  switch (z.i.group) {
     case -2: role = '禁言'; break;
     case -1: role = '广告'; break;
     case 1: role = '贵宾'; break;

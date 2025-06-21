@@ -117,16 +117,16 @@ export async function uSave(a: Context) {
 
 export async function uAdv(a: Context) {
     const i = await Auth(a)
-    if (!i || i.gid < 2) { return a.text('401', 401) }
+    if (!i || i.group < 2) { return a.text('401', 401) }
     const uid = parseInt(a.req.param('uid') ?? '0')
     const user = (await DB(a)
         .update(User)
         .set({
-            gid: sql<number>`CASE WHEN ${User.gid} !=-1 THEN -1 ELSE 0 END`,
+            group: sql<number>`CASE WHEN ${User.group} !=-1 THEN -1 ELSE 0 END`,
         })
         .where(and(
             eq(User.uid, uid),
-            lt(User.gid, 1), // 无权封禁贵宾以上用户组
+            lt(User.group, 1), // 无权封禁贵宾以上用户组
         ))
         .returning()
     )?.[0]

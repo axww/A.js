@@ -120,7 +120,7 @@ ${Header(a, z)}
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <a href="/?user=${item.uid}" target="_blank" class="link link-hover truncate max-w-[120px] role_${item.gid}">${item.name}</a>
+                            <a href="/?user=${item.uid}" target="_blank" class="link link-hover truncate max-w-[120px] role_${item.group}">${item.name}</a>
                         </div>
                         <span class="flex items-center gap-2 min-w-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,7 +131,7 @@ ${Header(a, z)}
                         ${(z.i) ? html`
                             <div class="flex-1"></div>
                             <div class="flex flex-wrap gap-1">
-                                ${(z.i.gid >= 2 && !item.tid) ? html`
+                                ${(z.i.group >= 2 && !item.tid) ? html`
                                     <button class="btn btn-sm btn-ghost ${z.data[0].type ? 'btn-active' : ''}" onclick="pin(${item.pid});">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
@@ -139,15 +139,15 @@ ${Header(a, z)}
                                         置顶
                                     </button>
                                 `: ''}
-                                ${(z.i.gid >= 2) ? html`
-                                    <button class="btn btn-sm btn-ghost ${(item.gid ?? 0) < 0 ? 'btn-active' : ''}" onclick="adv(${item.uid},-1);">
+                                ${(z.i.group >= 2) ? html`
+                                    <button class="btn btn-sm btn-ghost ${(item.group ?? 0) < 0 ? 'btn-active' : ''}" onclick="adv(${item.uid},-1);">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3L21 21M7.71158 7.75466C6.72554 8.97901 5.86195 10.2027 5.50883 11.1C5.18069 11.9338 5 12.8452 5 13.8C5 17.7764 8.13401 21 12 21C14.4134 21 16.5415 19.7438 17.8 17.8324M10.38 4.69409C11.3129 3.68822 12 3 12 3C12 3 17.4527 8.46135 18.4912 11.1C18.7584 11.779 18.9278 12.5095 18.9815 13.273" />
                                         </svg>
                                         广告
                                     </button>
                                 `: ''}
-                                ${(z.i.gid >= 2 || z.i.uid == item.uid) ? html`
+                                ${(z.i.group >= 2 || z.i.uid == item.uid) ? html`
                                     <button class="btn btn-sm btn-ghost" onclick="omit(-${item.pid});">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -155,7 +155,7 @@ ${Header(a, z)}
                                         删除
                                     </button>
                                 `: ''}
-                                ${(z.i.gid >= 3 || z.i.uid == item.uid) ? html`
+                                ${(z.i.group >= 3 || z.i.uid == item.uid) ? html`
                                     <a href="/e/-${item.pid}" class="btn btn-sm btn-ghost">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />

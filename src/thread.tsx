@@ -10,9 +10,11 @@ export interface TListProps extends Props {
     pagination: number[]
     data: (typeof Post.$inferSelect & {
         name: string | null;
+        group: number | null;
         credits: number | null;
-        gid: number | null;
         last_name: string | null;
+        last_group: number | null;
+        last_credits: number | null;
         count: number | null;
     })[]
 }
@@ -27,9 +29,11 @@ export async function tList(a: Context) {
         .select({
             ...getTableColumns(Post),
             name: User.name,
+            group: User.group,
             credits: User.credits,
-            gid: User.gid,
             last_name: LastUser.name,
+            last_group: LastUser.group,
+            last_credits: LastUser.credits,
             count: Meta.count,
         })
         .from(Post)
@@ -60,7 +64,7 @@ export async function tList(a: Context) {
 
 export async function tPeak(a: Context) {
     const i = await Auth(a)
-    if (!i || i.gid < 2) { return a.text('401', 401) }
+    if (!i || i.group < 2) { return a.text('401', 401) }
     const tid = parseInt(a.req.param('tid') ?? '0')
     const post = (await DB(a)
         .update(Post)

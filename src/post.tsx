@@ -17,8 +17,8 @@ export interface PListProps extends Props {
     pagination: number[]
     data: (typeof Post.$inferSelect & {
         name: string | null;
+        group: number | null;
         credits: number | null;
-        gid: number | null;
         quote_content: string | null;
         quote_name: string | null;
     })[]
@@ -27,7 +27,7 @@ export interface PListProps extends Props {
 export async function pEdit(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    if (i.gid <= -2) { return a.text('403', 403) } // 禁言用户
+    if (i.group <= -2) { return a.text('403', 403) } // 禁言用户
     const eid = parseInt(a.req.param('eid') ?? '0')
     let title = ""
     let content = ''
@@ -39,8 +39,8 @@ export async function pEdit(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
-                (i.gid >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
-                (i.gid >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
+                (i.group >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.group >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
@@ -55,7 +55,7 @@ export async function pEdit(a: Context) {
 export async function pSave(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    if (i.gid <= -2) { return a.text('403', 403) } // 禁言用户
+    if (i.group <= -2) { return a.text('403', 403) } // 禁言用户
     const body = await a.req.formData()
     const eid = parseInt(a.req.param('eid') ?? '0')
     const raw = body.get('content')?.toString() ?? ''
@@ -70,8 +70,8 @@ export async function pSave(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
-                (i.gid >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
-                (i.gid >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
+                (i.group >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.group >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
             .returning({ pid: Post.pid })
         )?.[0]
@@ -79,7 +79,7 @@ export async function pSave(a: Context) {
         return a.text('ok')
     } else if (eid > 0) { // 回复
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        if (i.gid == -1 && a.get('time') - i.last_post < 43200) { return a.text('ad_limit_day', 403) } // 广告用户
+        if (i.group == -1 && a.get('time') - i.last_post < 43200) { return a.text('ad_limit_day', 403) } // 广告用户
         const Thread = alias(Post, 'Thread')
         const quote = (await DB(a)
             .select({
@@ -145,7 +145,7 @@ export async function pSave(a: Context) {
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        if (i.gid == -1 && a.get('time') - i.last_post < 432000) { return a.text('ad_limit_week', 403) } // 广告用户
+        if (i.group == -1 && a.get('time') - i.last_post < 432000) { return a.text('ad_limit_week', 403) } // 广告用户
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -199,7 +199,7 @@ export async function pOmit(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.pid, pid),
-            (i.gid >= 2) ? undefined : eq(Post.uid, i.uid), // 管理和作者都能删除
+            (i.group >= 2) ? undefined : eq(Post.uid, i.uid), // 管理和作者都能删除
         ))
     )?.[0]
     // 如果无权限或帖子不存在则报错
@@ -304,8 +304,8 @@ export async function pList(a: Context) {
         .select({
             ...getTableColumns(Post),
             name: User.name,
+            group: User.group,
             credits: User.credits,
-            gid: User.gid,
             quote_content: sql<string>`''`,
             quote_name: sql<string>`''`,
             count: Meta.count,
@@ -325,8 +325,8 @@ export async function pList(a: Context) {
         .select({
             ...getTableColumns(Post),
             name: User.name,
+            group: User.group,
             credits: User.credits,
-            gid: User.gid,
             quote_content: QuotePost.content,
             quote_name: QuoteUser.name,
             count: sql<number>`0`,
