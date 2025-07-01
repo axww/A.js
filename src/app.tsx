@@ -5,7 +5,7 @@ import { fUpload } from './file';
 import { mClear, mData, mList } from './message';
 import { pJump, pEdit, pList, pOmit, pSave } from './post';
 import { tList, tPeak } from './thread';
-import { uAuth, uLogin, uLogout, uRegister, uConf, uSave, uAdv } from './user';
+import { uAuth, uLogin, uLogout, uRegister, uConf, uSave, uAdv, uBan } from './user';
 
 declare module 'hono' { interface ContextVariableMap { time: number } }
 const app = new Hono();
@@ -29,6 +29,7 @@ app.post('/logout', uLogout);
 app.post('/register', uRegister);
 
 app.put('/uAdv/:uid{[-0-9]+}', uAdv);
+app.put('/uBan/:uid{[-0-9]+}', uBan);
 
 app.get('/m', mList);
 app.get('/mData', mData);

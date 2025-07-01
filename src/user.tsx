@@ -1,8 +1,8 @@
 import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { deleteCookie, setCookie } from "hono/cookie";
-import { and, eq, lt, or, sql } from "drizzle-orm";
-import { DB, User } from "./base";
+import { and, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
+import { DB, Meta, Post, User } from "./base";
 import { Auth, Config, MD5, RandomString } from "./core";
 import { UAuth } from "../render/UAuth";
 import { UConf } from "../render/UConf";
@@ -132,5 +132,68 @@ export async function uAdv(a: Context) {
     )?.[0]
     // 如果无法标记则报错
     if (!user) { return a.text('410:gone', 410) }
+    return a.text('ok')
+}
+
+export async function uBan(a: Context) {
+    const i = await Auth(a)
+    if (!i || i.group < 2) { return a.text('401', 401) }
+    const uid = parseInt(a.req.param('uid') ?? '0')
+    const user = (await DB(a)
+        .update(User)
+        .set({
+            group: -2,
+        })
+        .where(and(
+            eq(User.uid, uid),
+            lt(User.group, 1), // 无权封禁贵宾以上用户组
+        ))
+        .returning()
+    )?.[0]
+    // 如果无法标记则报错
+    if (!user) { return a.text('410:gone', 410) }
+    // 找出所有违规者帖子的回复
+    const topic = DB(a).$with('topic').as(
+        DB(a)
+            .select({ pid: Post.pid })
+            .from(Post)
+            .where(and(
+                inArray(Post.type, [0, 1]),
+                eq(Post.uid, uid),
+                eq(Post.tid, 0),
+            ))
+    )
+    // 删除违规者所有帖子以及所有回复
+    await DB(a).batch([
+        DB(a)
+            .with(topic)
+            .update(Post)
+            .set({
+                type: 1,
+            })
+            .where(and(
+                eq(Post.type, 0),
+                inArray(Post.tid, sql<number[]>`(SELECT pid FROM ${topic})`),
+                ne(Post.uid, uid),
+            )) // 更新thread
+        ,
+        DB(a)
+            .update(Post)
+            .set({
+                type: 3,
+            })
+            .where(and(
+                inArray(Post.type, [0, 1]),
+                eq(Post.uid, uid),
+            ))
+        ,
+        DB(a)
+            .update(Meta)
+            .set({
+                count: sql<number>`${Meta.count} - 1`,
+            })
+            .where(inArray(Meta.uid_tid, [-uid, 0]))
+        ,
+    ])
     return a.text('ok')
 }
