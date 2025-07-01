@@ -137,6 +137,27 @@ async function adv(uid) {
     }
 }
 
+// 封禁违规账号
+async function ban(uid) {
+    if (!confirm('封禁会删除所有帖子？')) { return }
+    try {
+        const response = await fetch('/uBan/' + uid, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('封禁账号失败');
+        }
+    } catch (error) {
+        console.error('封禁账号出错:', error);
+        alert('封禁账号失败');
+    }
+}
+
 // 上传文件
 function upload() {
     const input = document.createElement('input');
