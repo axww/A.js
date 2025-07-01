@@ -1,0 +1,11 @@
+导出远程数据库：
+npx wrangler d1 export cesspit --remote --output=./db.sql
+
+导入本地数据库：
+npx wrangler d1 execute cesspit --local --file=./db.sql
+
+导出本地数据库：
+npx wrangler d1 export cesspit --local --output=./db.sql
+
+导入远程数据库：
+npx wrangler d1 execute cesspit --remote --file=./db.sql
