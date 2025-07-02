@@ -9,3 +9,21 @@ npx wrangler d1 export cesspit --local --output=./db.sql
 
 导入远程数据库：
 npx wrangler d1 execute cesspit --remote --file=./db.sql
+
+wrangler.jsonc
+{
+    "name": "cesspit",
+    "main": "src/app.tsx",
+    "compatibility_date": "2025-07-01",
+    "assets": {
+        "directory": "./public",
+        "binding": "ASSETS"
+    },
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "cesspit",
+            "database_id": "?"
+        }
+    ]
+}

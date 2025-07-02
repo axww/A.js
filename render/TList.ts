@@ -22,11 +22,9 @@ ${Header(a, z)}
                                 ${item.type ? html`
                                     <div class="badge badge-primary badge-sm lg:badge-md flex-shrink-0">置顶</div>
                                 ` : ''}
-                                <div class="min-w-0 flex-1">
-                                    <h2 class="card-title text-base lg:text-lg hover:text-primary block">
-                                        <span class="lg:block truncate line-clamp-3 break-words">${raw(await HTMLText(item.content, 140, true))}</span>
-                                    </h2>
-                                </div>
+                                <h2 class="min-w-0 flex-1 card-title text-base lg:text-lg hover:text-primary line-clamp-3 break-words">
+                                    ${raw(await HTMLText(item.content, 140, true))}
+                                </h2>
                             </div>
                             <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-base-content/70">
                                 <div class="flex items-center gap-2 min-w-0">
