@@ -25,5 +25,8 @@ wrangler.jsonc
             "database_name": "cesspit",
             "database_id": "?"
         }
-    ]
+    ],
+    "vars": {
+        "ImgBBKey": "ffb900a61ef9d09dd3d8a1f060a0a0d3"
+    }
 }

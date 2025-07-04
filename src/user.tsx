@@ -163,7 +163,7 @@ export async function uBan(a: Context) {
                 eq(Post.tid, 0),
             ))
     )
-    // 删除违规者所有帖子以及所有回复
+    // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
     await DB(a).batch([
         DB(a)
             .with(topic)
@@ -178,6 +178,14 @@ export async function uBan(a: Context) {
             )) // 更新thread
         ,
         DB(a)
+            .with(topic)
+            .update(Meta)
+            .set({
+                count: sql<number>`${Meta.count} - (SELECT count(pid) FROM ${topic})`,
+            })
+            .where(inArray(Meta.uid_tid, [-uid, 0]))
+        ,
+        DB(a)
             .update(Post)
             .set({
                 type: 3,
@@ -186,13 +194,6 @@ export async function uBan(a: Context) {
                 inArray(Post.type, [0, 1]),
                 eq(Post.uid, uid),
             ))
-        ,
-        DB(a)
-            .update(Meta)
-            .set({
-                count: sql<number>`${Meta.count} - 1`,
-            })
-            .where(inArray(Meta.uid_tid, [-uid, 0]))
         ,
     ])
     return a.text('ok')
