@@ -27,6 +27,6 @@ wrangler.jsonc
         }
     ],
     "vars": {
-        "ImgBBKey": "ffb900a61ef9d09dd3d8a1f060a0a0d3"
+        "ImgBBKey": "?"
     }
 }
