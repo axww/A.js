@@ -46,11 +46,11 @@ export const Post = sqliteTable("post", {
 export const User = sqliteTable("user", {
     uid: integer().primaryKey(),
     time: integer().notNull().default(0),
-    mail: text().notNull().default('').unique(),
-    name: text().notNull().default('').unique(),
+    mail: text().notNull().default('').unique(), // COLLATE NOCASE
+    name: text().notNull().default('').unique(), // COLLATE NOCASE
     hash: text().notNull().default(''),
     salt: text().notNull().default(''),
-    group: integer().notNull().default(0), // 0用户 1贵宾 2管理 3站长
+    grade: integer().notNull().default(0), // 0用户 1贵宾 2管理 3站长
     golds: integer().notNull().default(0),
     credits: integer().notNull().default(0),
     last_post: integer().notNull().default(0),

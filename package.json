@@ -1,5 +1,5 @@
 {
-  "name": "cesspit",
+  "name": "a",
   "type": "module",
   "scripts": {
     "dev": "wrangler dev",
@@ -12,11 +12,11 @@
     "hono": "^4.8.4"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250705.0",
+    "@cloudflare/workers-types": "^4.20250709.0",
     "@hono/vite-build": "^1.6.2",
     "@hono/vite-dev-server": "^0.20.0",
     "drizzle-kit": "^0.31.4",
-    "vite": "^7.0.2",
-    "wrangler": "^4.23.0"
+    "vite": "^7.0.3",
+    "wrangler": "^4.24.0"
   }
 }
