@@ -253,9 +253,3 @@ export function RandomString(length: number = 16): string {
     }
     return result;
 }
-
-export async function MD5(str: string) {
-    return Array
-        .from(new Uint8Array(await crypto.subtle.digest("MD5", new TextEncoder().encode(str))))
-        .map(b => b.toString(16).padStart(2, "0")).join("")
-}
