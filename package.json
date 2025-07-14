@@ -2,21 +2,16 @@
   "name": "a",
   "type": "module",
   "scripts": {
-    "dev": "wrangler dev",
-    "build": "vite build",
-    "deploy": "npm run build && wrangler deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "dev": "bun run src/app.tsx"
   },
   "dependencies": {
+    "@libsql/client": "^0.15.9",
     "drizzle-orm": "^0.44.2",
-    "hono": "^4.8.4"
+    "hono": "^4.8.5",
+    "ts-md5": "^2.0.1"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250709.0",
-    "@hono/vite-build": "^1.6.2",
-    "@hono/vite-dev-server": "^0.20.0",
-    "drizzle-kit": "^0.31.4",
-    "vite": "^7.0.3",
-    "wrangler": "^4.24.0"
+    "bun-types": "^1.2.18",
+    "drizzle-kit": "^0.31.4"
   }
 }

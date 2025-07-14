@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { csrf } from 'hono/csrf';
+import { serveStatic } from 'hono/bun';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
 import { mClear, mData, mList } from './message';
@@ -39,5 +40,7 @@ app.post('/f', bodyLimit({
   maxSize: 10 * 1024 * 1024, // MB
   onError: (a) => a.text('Payload Too Large', 413),
 }), fUpload);
+
+app.use('/*', serveStatic({ root: './public/' }))
 
 export default app

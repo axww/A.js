@@ -67,7 +67,7 @@ ${Header(a, z)}
           window.location = document.referrer;
         } else {
           const response = await fetch(
-            new Request("/login", { method: "POST", body: new FormData(form) })
+            new Request("/login", { method: "POST", body: data })
           );
           const text = await response.text();
           if (text === "no user") {

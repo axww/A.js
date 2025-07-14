@@ -2,8 +2,9 @@ import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { and, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
+import { Md5 } from "ts-md5";
 import { DB, Meta, Post, User } from "./base";
-import { Auth, Config, MD5, RandomString } from "./core";
+import { Auth, Config, RandomString } from "./core";
 import { UAuth } from "../render/UAuth";
 import { UConf } from "../render/UConf";
 
@@ -35,7 +36,7 @@ export async function uLogin(a: Context) {
     if (!user) {
         return a.text('no user', 401);
     }
-    if (await MD5(pass + user.salt) !== user.hash) {
+    if (Md5.hashStr(pass + user.salt) !== user.hash) {
         return a.text('401', 401);
     }
     try {
@@ -63,7 +64,7 @@ export async function uRegister(a: Context) {
         .values({
             mail: acct,
             name: '#' + a.get('time'),
-            hash: await MD5(pass + rand),
+            hash: Md5.hashStr(pass + rand),
             salt: rand,
             time: a.get('time'),
         })
@@ -99,14 +100,14 @@ export async function uSave(a: Context) {
         .from(User)
         .where(eq(User.uid, i.uid))
     )?.[0]
-    if (!user || await MD5(pass_confirm + user.salt) != user.hash) { return a.text('pass_confirm', 401) }
+    if (!user || Md5.hashStr(pass_confirm + user.salt) != user.hash) { return a.text('pass_confirm', 401) }
     try {
         await DB(a)
             .update(User)
             .set({
                 mail: mail,
                 name: name,
-                hash: pass ? await MD5(pass + user.salt) : undefined,
+                hash: pass ? Md5.hashStr(pass + user.salt) : undefined,
             })
             .where(eq(User.uid, i.uid))
     } catch (error) {
