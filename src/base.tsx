@@ -10,7 +10,12 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 */
 
 export function DB(a: Context) {
-    return drizzle(createClient({url: "file:a.db"}));
+    let db = a.get('db');
+    if (!db) {
+        db = drizzle(createClient({ url: "file:a.db" }));
+        a.set('db', db);
+    }
+    return db;
 }
 
 export const Conf = sqliteTable("conf", {

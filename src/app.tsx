@@ -8,7 +8,7 @@ import { pJump, pEdit, pList, pOmit, pSave } from './post';
 import { tList, tPeak } from './thread';
 import { uAuth, uLogin, uLogout, uRegister, uConf, uSave, uAdv, uBan } from './user';
 
-declare module 'hono' { interface ContextVariableMap { time: number } }
+declare module 'hono' { interface ContextVariableMap { db: any, time: number } }
 const app = new Hono();
 app.use(csrf());
 app.use((c, next) => { c.set('time', Math.floor(Date.now() / 1000)); return next(); })
