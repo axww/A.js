@@ -2,7 +2,7 @@
   "name": "a",
   "type": "module",
   "scripts": {
-    "dev": "bun run src/app.tsx"
+    "app": "bun run src/app.tsx"
   },
   "dependencies": {
     "@libsql/client": "^0.15.9",
