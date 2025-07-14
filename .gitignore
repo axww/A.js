@@ -10,5 +10,6 @@
 
 package-lock.json
 node_modules/
+dist/
 bun.lock
 a.db
