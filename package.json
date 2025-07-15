@@ -6,7 +6,8 @@
   },
   "dependencies": {
     "@libsql/client": "^0.15.9",
-    "drizzle-orm": "^0.44.2",
+    "drizzle-orm": "^0.44.3",
+    "file-type": "^21.0.0",
     "hono": "^4.8.5",
     "ts-md5": "^2.0.1"
   },
