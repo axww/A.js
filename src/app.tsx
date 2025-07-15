@@ -1,5 +1,4 @@
 import { Hono } from 'hono';
-import { csrf } from 'hono/csrf';
 import { serveStatic } from 'hono/bun';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
@@ -10,8 +9,9 @@ import { uAuth, uLogin, uLogout, uRegister, uConf, uSave, uAdv, uBan } from './u
 
 declare module 'hono' { interface ContextVariableMap { db: any, time: number } }
 const app = new Hono();
-app.use(csrf());
+
 app.use((c, next) => { c.set('time', Math.floor(Date.now() / 1000)); return next(); })
+app.use('/*', serveStatic({ root: './public/' }))
 
 app.get('/:page{[0-9]+}?', tList);
 app.get('/t/:tid{[0-9]+}/:page{[0-9]+}?', pList);
@@ -40,7 +40,5 @@ app.post('/f', bodyLimit({
   maxSize: 10 * 1024 * 1024, // MB
   onError: (a) => a.text('Payload Too Large', 413),
 }), fUpload);
-
-app.use('/*', serveStatic({ root: './public/' }))
 
 export default app
