@@ -1,2 +1,23 @@
 git clone https://github.com/axww/A.js.git /www/a
 while pgrep -f "bun"; do pkill -f "bun"; done && cd /www/a && git fetch && git reset --hard && git pull && bun upgrade && bun install && cd /www/a && chmod 755 *; nohup bun app > app.log 2>&1 &
+
+server {
+listen 80;
+listen [::]:80;
+server_name abc.xyz www.abc.xyz;
+root /www/a;
+if ($host != 'abc.xyz') {
+rewrite ^(.*)$ https://abc.xyz$1 permanent;
+}
+if ($scheme != 'https') {
+rewrite ^(.*)$ https://$host$1 permanent;
+}
+location ~ ^/(js|css|ico|txt)/ {
+alias /www/a/public/$1/;
+try_files $uri $uri/ =404;
+}
+location / {
+proxy_pass http://127.0.0.1:3000;
+proxy_set_header Host $http_host;
+}
+}
