@@ -10,4 +10,6 @@
 node_modules/
 package-lock.json
 bun.lock
-a.db
+www.js
+www.db
+www.log

@@ -1,13 +1,13 @@
 git clone https://github.com/axww/A.js.git /www/assbbs_com
-while pgrep -f "bun"; do pkill -f "bun"; done && cd /www/assbbs_com && git fetch && git reset --hard && git pull && bun upgrade && bun install && cd /www/assbbs_com && chmod 755 * && bun add -g pm2 && bunx pm2 start ./src/app.tsx --interpreter bun && nohup bun app > app.log 2>&1 &
+while pgrep -f "bun"; do pkill -f "bun"; done && cd /www/assbbs_com && git fetch && git reset --hard && git pull && bun upgrade && bun install && cd /www/assbbs_com && chmod 755 * && nohup bun www > www.log 2>&1 &
 
 server {
 listen 80;
 listen [::]:80;
-server_name abc.xyz www.abc.xyz;
+server_name assbbs.com www.assbbs.com;
 root /www/a;
-if ($host != 'abc.xyz') {
-rewrite ^(.*)$ https://abc.xyz$1 permanent;
+if ($host != 'assbbs.com') {
+rewrite ^(.*)$ https://assbbs.com$1 permanent;
 }
 if ($scheme != 'https') {
 rewrite ^(.*)$ https://$host$1 permanent;

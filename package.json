@@ -2,7 +2,9 @@
   "name": "a",
   "type": "module",
   "scripts": {
-    "app": "bun run src/app.tsx"
+    "dev": "bun --hot run src/app.tsx",
+    "pkg": "bun build src/app.tsx --target bun --outdir ./ --entry-naming www.js",
+    "www": "bun pkg && bun www.js"
   },
   "dependencies": {
     "@libsql/client": "^0.15.10",

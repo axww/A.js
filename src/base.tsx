@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { createClient } from '@libsql/client';
+import { createClient } from '@libsql/client/node';
 import { drizzle } from "drizzle-orm/libsql";
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
@@ -12,7 +12,7 @@ import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 export function DB(a: Context) {
     let db = a.get('db');
     if (!db) {
-        db = drizzle(createClient({ url: "file:a.db" }));
+        db = drizzle(createClient({ url: "file:www.db" }));
         a.set('db', db);
     }
     return db;
