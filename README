@@ -1,6 +1,6 @@
 git clone https://github.com/axww/A.js.git /www/assbbs_com
-cd /www/assbbs_com && (pkill -f "bun"  true) && (nohup bun www > www.log 2>&1 &)
-cd /www/assbbs_com && (pkill -f "bun"  true) && git fetch && git reset --hard && git pull && bun upgrade && bun install && (nohup bun www > www.log 2>&1 &)
+cd /www/assbbs_com && (pkill -f "bun" || true) && (nohup bun www > www.log 2>&1 &)
+cd /www/assbbs_com && (pkill -f "bun" || true) && git fetch && git reset --hard && git pull && bun upgrade && bun install && (nohup bun www > www.log 2>&1 &)
 
 server {
 listen 80;
