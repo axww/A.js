@@ -41,4 +41,7 @@ app.post('/f', bodyLimit({
   onError: (a) => a.text('Payload Too Large', 413),
 }), fUpload);
 
-export default app
+export default {
+  fetch: app.fetch,
+  idleTimeout: 60
+}
