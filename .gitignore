@@ -9,7 +9,8 @@
 .DS_Store
 node_modules/
 package-lock.json
-bun.lock
+www.log
 www.js
 www.db
-www.log
+www.db-shm
+www.db-wal

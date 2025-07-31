@@ -2,19 +2,21 @@
   "name": "a",
   "type": "module",
   "scripts": {
-    "dev": "bun --hot run src/app.tsx",
-    "pkg": "bun build src/app.tsx --target bun --outdir ./ --entry-naming www.js",
-    "www": "bun pkg && bun www.js"
+    "dev": "npx tsx watch src/app.tsx",
+    "www": "npx tsx src/app.tsx"
   },
   "dependencies": {
+    "@hono/node-server": "^1.18.0",
     "@libsql/client": "^0.15.10",
     "drizzle-orm": "^0.44.3",
     "file-type": "^21.0.0",
     "hono": "^4.8.9",
+    "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {
-    "bun-types": "^1.2.19",
-    "drizzle-kit": "^0.31.4"
+    "drizzle-kit": "^0.31.4",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
   }
 }
