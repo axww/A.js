@@ -1,6 +1,7 @@
 import { Context } from "hono";
 import { verify } from "hono/jwt";
 import { getCookie } from "hono/cookie";
+import { HTMLRewriter } from "htmlrewriter";
 import { eq, and, desc, getTableColumns, sql } from 'drizzle-orm';
 import { DB, Conf, Post, User } from "./base";
 
@@ -36,7 +37,7 @@ export class Config {
     private constructor() { }
     static async init(a: Context) {
         const configs = await DB(a).select().from(Conf);
-        configs.forEach(({ key, value }) => {
+        configs.forEach(({ key, value }: { key: string; value: string }) => {
             try {
                 this.data.set(key, value ? JSON.parse(value) : null);
                 this.void = false;

@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { serveStatic } from 'hono/bun';
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { bodyLimit } from 'hono/body-limit';
 import { fUpload } from './file';
 import { mClear, mData, mList } from './message';
@@ -41,7 +42,9 @@ app.post('/f', bodyLimit({
   onError: (a) => a.text('Payload Too Large', 413),
 }), fUpload);
 
-export default {
+serve({
   fetch: app.fetch,
-  idleTimeout: 60
-}
+  port: 3000
+}, (info) => {
+  console.log(`Server is running on http://localhost:${info.port}`)
+})

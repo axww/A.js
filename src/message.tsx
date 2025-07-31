@@ -50,7 +50,7 @@ export async function mData(a: Context) {
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.relate_id))
         .orderBy(desc(Post.type), desc(Post.quote_uid), desc(Post.sort_time))
         .limit(10)
-    await Promise.all(data.map(async function (row) {
+    await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);
         row.post_content = await HTMLText(row.post_content, 300);
     }))
