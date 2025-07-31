@@ -3,19 +3,21 @@
   "type": "module",
   "scripts": {
     "dev": "npx tsx watch src/app.tsx",
-    "www": "npx tsx src/app.tsx"
+    "www": "npx tsx src/app.tsx",
+    "ncu": "npx ncu -u"
   },
   "dependencies": {
     "@hono/node-server": "^1.18.0",
     "@libsql/client": "^0.15.10",
-    "drizzle-orm": "^0.44.3",
+    "drizzle-orm": "^0.44.4",
     "file-type": "^21.0.0",
-    "hono": "^4.8.9",
+    "hono": "^4.8.10",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.4",
+    "npm-check-updates": "^18.0.2",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
   }
