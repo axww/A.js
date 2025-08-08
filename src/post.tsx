@@ -260,6 +260,13 @@ export async function pOmit(a: Context) {
         )
         await DB(a).batch([
             DB(a)
+                .update(Post)
+                .set({
+                    type: 3,
+                })
+                .where(eq(Post.pid, post.pid))
+            ,
+            DB(a)
                 .with(last)
                 .update(Post)
                 .set({
@@ -267,13 +274,6 @@ export async function pOmit(a: Context) {
                     relate_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
-            ,
-            DB(a)
-                .update(Post)
-                .set({
-                    type: 3,
-                })
-                .where(eq(Post.pid, post.pid))
             ,
             DB(a)
                 .update(Meta)
