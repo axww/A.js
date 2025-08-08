@@ -266,7 +266,7 @@ export async function pOmit(a: Context) {
                 })
                 .where(eq(Post.pid, post.pid))
             ,
-            DB(a)
+            DB(a) // 注意逻辑顺序 必须先标记删除 再获取最后回复
                 .with(last)
                 .update(Post)
                 .set({
