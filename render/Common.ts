@@ -107,7 +107,8 @@ export async function Footer(a: Context, z: Props) {
         <p class="text-sm opacity-50">
           <a href="https://github.com/honojs/hono" target="_blank">Hono</a>
           <a href="https://orm.drizzle.team/" target="_blank">Drizzle</a>
-          <a href="https://workers.cloudflare.com/" target="_blank">Cloudflare</a>
+          <a href="https://github.com/asisyu" target="_blank">AsisYu</a>
+          <a href="https://github.com/Kutinana" target="_blank">Kutinana</a>
           <a href="https://www.dogyun.com/" target="_blank">DogYun</a>
         </p>
       </div>
