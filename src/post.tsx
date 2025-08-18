@@ -38,7 +38,7 @@ export async function pEdit(a: Context) {
             .from(Post)
             .where(and(
                 eq(Post.pid, -eid),
-                inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
+                inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
                 (i.grade >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
                 (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
@@ -69,7 +69,7 @@ export async function pSave(a: Context) {
             })
             .where(and(
                 eq(Post.pid, -eid),
-                inArray(Post.type, [0, 1]), // 已删除的内容不能编辑
+                inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
                 (i.grade >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
                 (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
@@ -91,7 +91,7 @@ export async function pSave(a: Context) {
             .from(Post)
             .where(and(
                 eq(Post.pid, eid),
-                inArray(Post.type, [0, 1]), // 已删除的内容不能回复
+                inArray(Post.attr, [0, 1]), // 已删除的内容不能回复
             ))
             .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.zone} <= 0 THEN ${Post.pid} ELSE ${Post.zone} END`))
         )?.[0]
@@ -210,17 +210,17 @@ export async function pOmit(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    type: 3, // 主题自身被删 类型改为3
+                    attr: 3, // 主题自身被删 类型改为3
                 })
                 .where(eq(Post.pid, post.pid))
             ,
             DB(a)
                 .update(Post)
                 .set({
-                    type: 1, // 主题被删 公开回复 类型改为1
+                    attr: 1, // 主题被删 公开回复 类型改为1
                 })
                 .where(and(
-                    eq(Post.type, 0),
+                    eq(Post.attr, 0),
                     eq(Post.zone, post.pid),
                 ))
             ,
@@ -250,19 +250,19 @@ export async function pOmit(a: Context) {
                 })
                 .from(Post)
                 .where(and(
+                    // attr
+                    eq(Post.attr, 0),
                     // zone
                     eq(Post.zone, post.zone),
-                    // type
-                    eq(Post.type, 0),
                 ))
-                .orderBy(desc(Post.zone), desc(Post.type), desc(Post.time))
+                .orderBy(desc(Post.attr), desc(Post.zone), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
             DB(a)
                 .update(Post)
                 .set({
-                    type: 3,
+                    attr: 3,
                 })
                 .where(eq(Post.pid, post.pid))
             ,
@@ -313,7 +313,7 @@ export async function pList(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.pid, tid),
-            inArray(Post.type, [0, 1]),
+            inArray(Post.attr, [0, 1]),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
         .leftJoin(Meta, eq(Meta.uid_tid, tid))
@@ -333,13 +333,13 @@ export async function pList(a: Context) {
         })
         .from(Post)
         .where(and(
+            eq(Post.attr, 0),
             eq(Post.zone, tid),
-            eq(Post.type, 0),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.rpid, Post.zone), eq(QuotePost.pid, Post.rpid), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.rpid, Post.zone), eq(QuotePost.pid, Post.rpid), inArray(QuotePost.attr, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
+        .orderBy(asc(Post.attr), asc(Post.zone), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
@@ -358,14 +358,14 @@ export async function pJump(a: Context) {
         .select({ count: count() })
         .from(Post)
         .where(and(
-            // tid
+            // attr
+            eq(Post.attr, 0),
+            // zone
             eq(Post.zone, tid),
-            // type
-            eq(Post.type, 0),
             // time
             lte(Post.time, time),
         ))
-        .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
+        .orderBy(asc(Post.attr), asc(Post.zone), asc(Post.time))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)

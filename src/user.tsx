@@ -153,15 +153,15 @@ export async function uBan(a: Context) {
     )?.[0]
     // 如果无法标记则报错
     if (!user) { return a.text('410:gone', 410) }
-    // 找出所有违规者帖子的回复
+    // 找出所有违规者帖子
     const topic = DB(a).$with('topic').as(
         DB(a)
             .select({ pid: Post.pid })
             .from(Post)
             .where(and(
+                inArray(Post.attr, [0, 1]),
                 eq(Post.uid, uid),
                 lte(Post.zone, 0),
-                inArray(Post.type, [0, 1]),
             ))
     )
     // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
@@ -170,11 +170,11 @@ export async function uBan(a: Context) {
             .with(topic)
             .update(Post)
             .set({
-                type: 1,
+                attr: 1,
             })
             .where(and(
                 inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
-                eq(Post.type, 0),
+                eq(Post.attr, 0),
                 ne(Post.uid, uid),
             )) // 更新thread
         ,
@@ -189,10 +189,10 @@ export async function uBan(a: Context) {
         DB(a)
             .update(Post)
             .set({
-                type: 3,
+                attr: 3,
             })
             .where(and(
-                inArray(Post.type, [0, 1]),
+                inArray(Post.attr, [0, 1]),
                 eq(Post.uid, uid),
             ))
         ,

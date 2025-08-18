@@ -41,18 +41,18 @@ export async function tList(a: Context) {
         })
         .from(Post)
         .where(and(
+            inArray(Post.attr, [0, 1]),
             user ? eq(Post.uid, user) : eq(Post.call, 0),
             user ? eq(Post.zone, 0) : undefined,
-            inArray(Post.type, [0, 1]),
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.uid))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
-            [desc(Post.uid), desc(Post.zone), desc(Post.type), desc(Post.time)]
+            [desc(Post.attr), desc(Post.uid), desc(Post.zone), desc(Post.time)]
             :
-            [desc(Post.call), desc(Post.type), desc(Post.sort)]
+            [desc(Post.attr), desc(Post.call), desc(Post.sort)]
         ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
@@ -73,12 +73,12 @@ export async function tPeak(a: Context) {
     const post = (await DB(a)
         .update(Post)
         .set({
-            type: sql<number>`CASE WHEN ${Post.type} = 0 THEN 1 ELSE 0 END`,
+            attr: sql<number>`CASE WHEN ${Post.attr} = 0 THEN 1 ELSE 0 END`,
         })
         .where(and(
             eq(Post.pid, tid),
+            inArray(Post.attr, [0, 1]),
             lte(Post.zone, 0),
-            inArray(Post.type, [0, 1]),
         ))
         .returning()
     )?.[0]

@@ -19,7 +19,7 @@ ${Header(a, z)}
                         <!-- 左侧信息 -->
                         <div class="flex-1 min-w-0 overflow-hidden">
                             <div class="flex flex-wrap items-center gap-2 mb-2">
-                                ${item.type ? html`
+                                ${item.attr ? html`
                                     <div class="badge badge-primary badge-sm lg:badge-md flex-shrink-0">置顶</div>
                                 ` : ''}
                                 <h2 class="min-w-0 flex-1 card-title text-base lg:text-lg hover:text-primary line-clamp-3 break-words">

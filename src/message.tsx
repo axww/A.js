@@ -42,13 +42,13 @@ export async function mData(a: Context) {
         })
         .from(Post)
         .where(and(
+            eq(Post.attr, 0),
             eq(Post.call, i.uid),
-            eq(Post.type, 0),
             sort ? lt(Post.sort, sort) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.rpid))
-        .orderBy(desc(Post.call), desc(Post.type), desc(Post.sort))
+        .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
         .limit(10)
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);
