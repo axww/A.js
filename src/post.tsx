@@ -86,28 +86,28 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.uid,
                 tid: Thread.pid,
-                sort_time: Thread.sort_time,
+                last_time: Thread.last_time,
             })
             .from(Post)
             .where(and(
                 eq(Post.pid, eid),
                 inArray(Post.type, [0, 1]), // 已删除的内容不能回复
             ))
-            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.tid} = 0 THEN ${Post.pid} ELSE ${Post.tid} END`))
+            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.zone} <= 0 THEN ${Post.pid} ELSE ${Post.zone} END`))
         )?.[0]
-        if (!quote || quote.tid === null || quote.sort_time === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if (a.get('time') > quote.sort_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if (!quote || quote.tid === null || quote.last_time === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
+        if (a.get('time') > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
             DB(a)
                 .insert(Post)
                 .values({
-                    tid: quote.tid,
                     uid: i.uid,
+                    tid: quote.tid,
+                    call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
                     time: a.get('time'),
-                    sort_time: a.get('time'),
-                    quote_uid: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
+                    last_time: a.get('time'),
                     relate_id: quote.pid,
                     content,
                 })
@@ -116,7 +116,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort_time: a.get('time'),
+                    last_time: a.get('time'),
                     relate_id: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
@@ -154,7 +154,7 @@ export async function pSave(a: Context) {
                 .values({
                     uid: i.uid,
                     time: a.get('time'),
-                    sort_time: a.get('time'),
+                    last_time: a.get('time'),
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -193,7 +193,7 @@ export async function pOmit(a: Context) {
         .select({
             pid: Post.pid,
             uid: Post.uid,
-            tid: Post.tid,
+            zone: Post.zone,
             relate_id: Post.relate_id,
         })
         .from(Post)
@@ -204,7 +204,7 @@ export async function pOmit(a: Context) {
     )?.[0]
     // 如果无权限或帖子不存在则报错
     if (!post) { return a.text('410:gone', 410) }
-    if (!post.tid) {
+    if (post.zone <= 0) {
         // 如果删的是Thread
         await DB(a).batch([
             DB(a)
@@ -221,7 +221,7 @@ export async function pOmit(a: Context) {
                 })
                 .where(and(
                     eq(Post.type, 0),
-                    eq(Post.tid, post.pid),
+                    eq(Post.zone, post.pid),
                 ))
             ,
             DB(a)
@@ -250,12 +250,12 @@ export async function pOmit(a: Context) {
                 })
                 .from(Post)
                 .where(and(
+                    // tid
+                    eq(Post.zone, post.tid),
                     // type
                     eq(Post.type, 0),
-                    // tid
-                    eq(Post.tid, post.tid),
                 ))
-                .orderBy(desc(Post.type), desc(Post.tid), desc(Post.time))
+                .orderBy(desc(Post.zone), desc(Post.type), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -270,7 +270,7 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    sort_time: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
+                    last_time: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
                     relate_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
@@ -333,39 +333,39 @@ export async function pList(a: Context) {
         })
         .from(Post)
         .where(and(
+            eq(Post.zone, tid),
             eq(Post.type, 0),
-            eq(Post.tid, tid),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.relate_id, Post.tid), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.relate_id, Post.zone), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.time))
+        .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     ]
     const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = a.get('time') > (thread.sort_time + 604800)
+    const thread_lock = a.get('time') > (thread.last_time + 604800)
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 
 export async function pJump(a: Context) {
     const tid = parseInt(a.req.query('tid') ?? '0')
     const time = parseInt(a.req.query('time') ?? '0')
-    if (!tid || !time) { return a.redirect('/') }
+    if (tid <= 0 || !time) { return a.redirect('/') }
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const data = (await DB(a)
         .select({ count: count() })
         .from(Post)
         .where(and(
+            // tid
+            eq(Post.zone, tid),
             // type
             eq(Post.type, 0),
-            // tid
-            eq(Post.tid, tid),
             // time
             lte(Post.time, time),
         ))
-        .orderBy(asc(Post.type), asc(Post.tid), asc(Post.time))
+        .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
     )?.[0]
     const page = Math.ceil(data.count / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)

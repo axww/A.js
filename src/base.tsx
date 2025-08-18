@@ -30,23 +30,23 @@ export const Meta = sqliteTable("meta", {
 
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
-    tid: integer().notNull().default(0),
     uid: integer().notNull().default(0),
+    call: integer().notNull().default(0), // =0主题 <0回复自己 >0回复他人
+    zone: integer().notNull().default(0), // <=0节点 >0所属帖子pid
     type: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     time: integer().notNull().default(0),
-    sort_time: integer().notNull().default(0), // T:sort_time P:post_time
-    quote_uid: integer().notNull().default(0), // T:0 P:quote_uid N:-quote_uid
+    last_time: integer().notNull().default(0), // T:last_time P:post_time
     relate_id: integer().notNull().default(0), // T:last_uid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
-    index("post:type,tid,time").on(table.type, table.tid, table.time),
-    index("post:type,uid,tid,time").on(table.type, table.uid, table.tid, table.time),
-    // tid=0,首页帖子(发表时间排序)
-    // tid!=0,帖内回复(发表时间排序)
+    index("post:zone,type,time").on(table.zone, table.type, table.time),
+    index("post:uid,zone,type,time").on(table.uid, table.zone, table.type, table.time),
+    // zone<=0,各节点帖子(发表时间排序)
+    // zone>0,帖内回复(发表时间排序)
     // uid=*,只显示某用户的
-    index("post:type,quote_uid,sort_time").on(table.type, table.quote_uid, table.sort_time),
-    // quote_uid=0,首页帖子(回复时间排序)
-    // quote_uid=*,消息通知(指定被回复人)
+    index("post:call,type,last_time").on(table.call, table.type, table.last_time),
+    // call=0,首页帖子(回复时间排序)
+    // call=*,消息通知(指定被回复人)
 ]);
 
 export const User = sqliteTable("user", {

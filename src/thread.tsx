@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { Props, DB, User, Meta, Post } from "./base";
 import { Auth, Config, Pagination } from "./core";
@@ -38,17 +38,17 @@ export async function tList(a: Context) {
         })
         .from(Post)
         .where(and(
+            user ? eq(Post.uid, user) : eq(Post.call, 0),
+            user ? eq(Post.zone, 0) : undefined,
             inArray(Post.type, [0, 1]),
-            user ? eq(Post.uid, user) : eq(Post.quote_uid, 0),
-            user ? eq(Post.tid, 0) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(LastUser, eq(LastUser.uid, Post.relate_id))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
-            [desc(Post.type), desc(Post.uid), desc(Post.tid), desc(Post.time)]
+            [desc(Post.uid), desc(Post.zone), desc(Post.type), desc(Post.time)]
             :
-            [desc(Post.type), desc(Post.quote_uid), desc(Post.sort_time)]
+            [desc(Post.call), desc(Post.type), desc(Post.last_time)]
         ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
@@ -73,7 +73,7 @@ export async function tPeak(a: Context) {
         })
         .where(and(
             eq(Post.pid, tid),
-            eq(Post.tid, 0),
+            lte(Post.zone, 0),
             inArray(Post.type, [0, 1]),
         ))
         .returning()

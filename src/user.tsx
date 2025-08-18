@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { sign } from "hono/jwt";
 import { deleteCookie, setCookie } from "hono/cookie";
-import { and, eq, inArray, lt, ne, or, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, lte, ne, or, sql } from "drizzle-orm";
 import { Md5 } from "ts-md5";
 import { DB, Meta, Post, User } from "./base";
 import { Auth, Config, RandomString } from "./core";
@@ -159,9 +159,9 @@ export async function uBan(a: Context) {
             .select({ pid: Post.pid })
             .from(Post)
             .where(and(
-                inArray(Post.type, [0, 1]),
                 eq(Post.uid, uid),
-                eq(Post.tid, 0),
+                lte(Post.zone, 0),
+                inArray(Post.type, [0, 1]),
             ))
     )
     // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
@@ -173,8 +173,8 @@ export async function uBan(a: Context) {
                 type: 1,
             })
             .where(and(
+                inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
                 eq(Post.type, 0),
-                inArray(Post.tid, sql<number[]>`(SELECT pid FROM ${topic})`),
                 ne(Post.uid, uid),
             )) // 更新thread
         ,
