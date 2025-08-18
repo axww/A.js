@@ -108,7 +108,7 @@ export async function pSave(a: Context) {
                     call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
                     time: a.get('time'),
                     sort: a.get('time'),
-                    relate_id: quote.pid,
+                    link_id: quote.pid,
                     content,
                 })
                 .returning({ pid: Post.pid })
@@ -117,7 +117,7 @@ export async function pSave(a: Context) {
                 .update(Post)
                 .set({
                     sort: a.get('time'),
-                    relate_id: i.uid,
+                    link_id: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -194,7 +194,7 @@ export async function pOmit(a: Context) {
             pid: Post.pid,
             uid: Post.uid,
             zone: Post.zone,
-            relate_id: Post.relate_id,
+            link_id: Post.link_id,
         })
         .from(Post)
         .where(and(
@@ -271,7 +271,7 @@ export async function pOmit(a: Context) {
                 .update(Post)
                 .set({
                     sort: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
-                    relate_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
+                    link_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
             ,
@@ -337,7 +337,7 @@ export async function pList(a: Context) {
             eq(Post.type, 0),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.relate_id, Post.zone), eq(QuotePost.pid, Post.relate_id), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.link_id, Post.zone), eq(QuotePost.pid, Post.link_id), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
         .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
         .offset((page - 1) * page_size_p)

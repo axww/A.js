@@ -36,7 +36,7 @@ export const Post = sqliteTable("post", {
     type: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     time: integer().notNull().default(0),
     sort: integer().notNull().default(0), // T:last_time P:post_time
-    relate_id: integer().notNull().default(0), // T:last_uid P:quote_pid
+    link_id: integer().notNull().default(0), // T:last_uid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
     index("post:zone,type,time").on(table.zone, table.type, table.time),

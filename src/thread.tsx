@@ -43,7 +43,7 @@ export async function tList(a: Context) {
             inArray(Post.type, [0, 1]),
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
-        .leftJoin(LastUser, eq(LastUser.uid, Post.relate_id))
+        .leftJoin(LastUser, eq(LastUser.uid, Post.link_id))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
             [desc(Post.uid), desc(Post.zone), desc(Post.type), desc(Post.time)]
