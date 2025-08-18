@@ -46,7 +46,7 @@ export async function mData(a: Context) {
             eq(Post.call, i.uid),
             sort ? lt(Post.sort, sort) : undefined,
         ))
-        .leftJoin(User, eq(User.uid, Post.uid))
+        .leftJoin(User, eq(User.uid, Post.user))
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.rpid))
         .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
         .limit(10)

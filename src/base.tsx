@@ -31,7 +31,7 @@ export const Meta = sqliteTable("meta", {
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
     attr: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
-    uid: integer().notNull().default(0),
+    user: integer().notNull().default(0),
     call: integer().notNull().default(0), // =0主题 <0回复自己 >0回复他人
     zone: integer().notNull().default(0), // <=0节点 >0所属帖子pid
     time: integer().notNull().default(0),
@@ -43,10 +43,10 @@ export const Post = sqliteTable("post", {
     // call=0,首页帖子(回复时间排序)
     // call=*,消息通知(指定被回复人)
     index("post:attr,zone,time").on(table.attr, table.zone, table.time),
-    index("post:attr,uid,zone,time").on(table.attr, table.uid, table.zone, table.time),
+    index("post:attr,user,zone,time").on(table.attr, table.user, table.zone, table.time),
     // zone<=0,各节点帖子(发表时间排序)
     // zone>0,帖内回复(发表时间排序)
-    // uid=*,只显示某用户的
+    // user=*,只显示某用户的
 ]);
 
 export const User = sqliteTable("user", {

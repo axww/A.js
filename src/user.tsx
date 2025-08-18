@@ -160,7 +160,7 @@ export async function uBan(a: Context) {
             .from(Post)
             .where(and(
                 inArray(Post.attr, [0, 1]),
-                eq(Post.uid, uid),
+                eq(Post.user, uid),
                 lte(Post.zone, 0),
             ))
     )
@@ -175,7 +175,7 @@ export async function uBan(a: Context) {
             .where(and(
                 inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
                 eq(Post.attr, 0),
-                ne(Post.uid, uid),
+                ne(Post.user, uid),
             )) // 更新thread
         ,
         DB(a)
@@ -193,7 +193,7 @@ export async function uBan(a: Context) {
             })
             .where(and(
                 inArray(Post.attr, [0, 1]),
-                eq(Post.uid, uid),
+                eq(Post.user, uid),
             ))
         ,
     ])

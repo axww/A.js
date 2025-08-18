@@ -39,7 +39,7 @@ export async function pEdit(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
-                (i.grade >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.grade >= 3) ? undefined : eq(Post.user, i.uid), // 站长和作者都能编辑
                 (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
         )?.[0]
@@ -70,7 +70,7 @@ export async function pSave(a: Context) {
             .where(and(
                 eq(Post.pid, -eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能编辑
-                (i.grade >= 3) ? undefined : eq(Post.uid, i.uid), // 站长和作者都能编辑
+                (i.grade >= 3) ? undefined : eq(Post.user, i.uid), // 站长和作者都能编辑
                 (i.grade >= 3) ? undefined : gt(sql<number>`${Post.time} + 604800`, a.get('time')), // 7天后禁止编辑
             ))
             .returning({ pid: Post.pid })
@@ -84,7 +84,7 @@ export async function pSave(a: Context) {
         const quote = (await DB(a)
             .select({
                 pid: Post.pid,
-                uid: Post.uid,
+                uid: Post.user,
                 tid: Thread.pid,
                 sort: Thread.sort,
             })
@@ -192,14 +192,14 @@ export async function pOmit(a: Context) {
     const post = (await DB(a)
         .select({
             pid: Post.pid,
-            uid: Post.uid,
+            user: Post.user,
             zone: Post.zone,
             rpid: Post.rpid,
         })
         .from(Post)
         .where(and(
             eq(Post.pid, pid),
-            (i.grade >= 2) ? undefined : eq(Post.uid, i.uid), // 管理和作者都能删除
+            (i.grade >= 2) ? undefined : eq(Post.user, i.uid), // 管理和作者都能删除
         ))
     )?.[0]
     // 如果无权限或帖子不存在则报错
@@ -229,7 +229,7 @@ export async function pOmit(a: Context) {
                 .set({
                     count: sql<number>`${Meta.count} - 1`,
                 })
-                .where(inArray(Meta.uid_tid, [-post.uid, 0]))
+                .where(inArray(Meta.uid_tid, [-post.user, 0]))
             ,
             DB(a)
                 .update(User)
@@ -237,7 +237,7 @@ export async function pOmit(a: Context) {
                     golds: sql<number>`${User.golds} - 2`,
                     credits: sql<number>`${User.credits} - 2`,
                 })
-                .where(eq(User.uid, post.uid))
+                .where(eq(User.uid, post.user))
             ,
         ])
     } else {
@@ -288,7 +288,7 @@ export async function pOmit(a: Context) {
                     golds: sql<number>`${User.golds} - 1`,
                     credits: sql<number>`${User.credits} - 1`,
                 })
-                .where(eq(User.uid, post.uid))
+                .where(eq(User.uid, post.user))
             ,
         ])
     }
@@ -315,7 +315,7 @@ export async function pList(a: Context) {
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
         ))
-        .leftJoin(User, eq(Post.uid, User.uid))
+        .leftJoin(User, eq(Post.user, User.uid))
         .leftJoin(Meta, eq(Meta.uid_tid, tid))
     )?.[0]
     if (!thread) { return a.notFound() }
@@ -336,9 +336,9 @@ export async function pList(a: Context) {
             eq(Post.attr, 0),
             eq(Post.zone, tid),
         ))
-        .leftJoin(User, eq(Post.uid, User.uid))
+        .leftJoin(User, eq(Post.user, User.uid))
         .leftJoin(QuotePost, and(ne(Post.rpid, Post.zone), eq(QuotePost.pid, Post.rpid), inArray(QuotePost.attr, [0, 1])))
-        .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
+        .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.user))
         .orderBy(asc(Post.attr), asc(Post.zone), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)

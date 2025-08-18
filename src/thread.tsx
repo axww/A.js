@@ -42,15 +42,15 @@ export async function tList(a: Context) {
         .from(Post)
         .where(and(
             inArray(Post.attr, [0, 1]),
-            user ? eq(Post.uid, user) : eq(Post.call, 0),
+            user ? eq(Post.user, user) : eq(Post.call, 0),
             user ? eq(Post.zone, 0) : undefined,
         ))
-        .leftJoin(User, eq(User.uid, Post.uid))
+        .leftJoin(User, eq(User.uid, Post.user))
         .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
-        .leftJoin(LastUser, eq(LastUser.uid, LastPost.uid))
+        .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
-            [desc(Post.attr), desc(Post.uid), desc(Post.zone), desc(Post.time)]
+            [desc(Post.attr), desc(Post.user), desc(Post.zone), desc(Post.time)]
             :
             [desc(Post.attr), desc(Post.call), desc(Post.sort)]
         ))
