@@ -27,7 +27,7 @@ export async function mClear(a: Context) {
 export async function mData(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    const last_time = parseInt(a.req.query('last_time') ?? '0')
+    const sort = parseInt(a.req.query('sort') ?? '0')
     const QuotePost = alias(Post, 'QuotePost')
     const data = await DB(a)
         .select({
@@ -44,11 +44,11 @@ export async function mData(a: Context) {
         .where(and(
             eq(Post.call, i.uid),
             eq(Post.type, 0),
-            last_time ? lt(Post.last_time, last_time) : undefined,
+            sort ? lt(Post.sort, sort) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
         .leftJoin(QuotePost, eq(QuotePost.pid, Post.relate_id))
-        .orderBy(desc(Post.call), desc(Post.type), desc(Post.last_time))
+        .orderBy(desc(Post.call), desc(Post.type), desc(Post.sort))
         .limit(10)
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);

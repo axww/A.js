@@ -86,7 +86,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.uid,
                 tid: Thread.pid,
-                last_time: Thread.last_time,
+                sort: Thread.sort,
             })
             .from(Post)
             .where(and(
@@ -95,8 +95,8 @@ export async function pSave(a: Context) {
             ))
             .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.zone} <= 0 THEN ${Post.pid} ELSE ${Post.zone} END`))
         )?.[0]
-        if (!quote || quote.tid === null || quote.last_time === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if (a.get('time') > quote.last_time + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if (!quote || quote.tid === null || quote.sort === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
+        if (a.get('time') > quote.sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -107,7 +107,7 @@ export async function pSave(a: Context) {
                     tid: quote.tid,
                     call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
                     time: a.get('time'),
-                    last_time: a.get('time'),
+                    sort: a.get('time'),
                     relate_id: quote.pid,
                     content,
                 })
@@ -116,7 +116,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    last_time: a.get('time'),
+                    sort: a.get('time'),
                     relate_id: i.uid,
                 })
                 .where(eq(Post.pid, quote.tid))
@@ -154,7 +154,7 @@ export async function pSave(a: Context) {
                 .values({
                     uid: i.uid,
                     time: a.get('time'),
-                    last_time: a.get('time'),
+                    sort: a.get('time'),
                     content,
                 }).returning({ pid: Post.pid })
             ,
@@ -270,7 +270,7 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    last_time: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
+                    sort: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
                     relate_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
                 })
                 .where(eq(Post.pid, post.tid)) // 更新thread
@@ -345,7 +345,7 @@ export async function pList(a: Context) {
     ]
     const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = a.get('time') > (thread.last_time + 604800)
+    const thread_lock = a.get('time') > (thread.sort + 604800)
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 

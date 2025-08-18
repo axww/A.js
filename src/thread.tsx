@@ -48,7 +48,7 @@ export async function tList(a: Context) {
         .orderBy(...(user ?
             [desc(Post.uid), desc(Post.zone), desc(Post.type), desc(Post.time)]
             :
-            [desc(Post.call), desc(Post.type), desc(Post.last_time)]
+            [desc(Post.call), desc(Post.type), desc(Post.sort)]
         ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
