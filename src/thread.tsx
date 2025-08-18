@@ -12,6 +12,7 @@ export interface TListProps extends Props {
         name: string | null;
         grade: number | null;
         credits: number | null;
+        last_time: number | null;
         last_name: string | null;
         last_grade: number | null;
         last_credits: number | null;
@@ -24,6 +25,7 @@ export async function tList(a: Context) {
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const user = parseInt(a.req.query('user') ?? '0')
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
+    const LastPost = alias(Post, 'LastPost')
     const LastUser = alias(User, 'LastUser')
     const data = await DB(a)
         .select({
@@ -31,6 +33,7 @@ export async function tList(a: Context) {
             name: User.name,
             grade: User.grade,
             credits: User.credits,
+            last_time: LastPost.time,
             last_name: LastUser.name,
             last_grade: LastUser.grade,
             last_credits: LastUser.credits,
@@ -43,7 +46,8 @@ export async function tList(a: Context) {
             inArray(Post.type, [0, 1]),
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
-        .leftJoin(LastUser, eq(LastUser.uid, Post.link_id))
+        .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
+        .leftJoin(LastUser, eq(LastUser.uid, LastPost.uid))
         .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
             [desc(Post.uid), desc(Post.zone), desc(Post.type), desc(Post.time)]

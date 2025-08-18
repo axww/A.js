@@ -95,8 +95,8 @@ export async function pSave(a: Context) {
             ))
             .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.zone} <= 0 THEN ${Post.pid} ELSE ${Post.zone} END`))
         )?.[0]
-        if (!quote || quote.tid === null || quote.sort === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if (a.get('time') > quote.sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
+        if ([0].includes(quote.zone) && a.get('time') > quote.sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -104,11 +104,11 @@ export async function pSave(a: Context) {
                 .insert(Post)
                 .values({
                     uid: i.uid,
-                    tid: quote.tid,
                     call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
+                    zone: quote.tid,
                     time: a.get('time'),
                     sort: a.get('time'),
-                    link_id: quote.pid,
+                    rpid: quote.pid,
                     content,
                 })
                 .returning({ pid: Post.pid })
@@ -116,8 +116,8 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort: a.get('time'),
-                    link_id: i.uid,
+                    sort: [0].includes(quote.zone) ? a.get('time') : Post.sort, // 需要最后回复排序的帖子分区
+                    rpid: sql<number>`LAST_INSERT_ROWID()`,
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -194,7 +194,7 @@ export async function pOmit(a: Context) {
             pid: Post.pid,
             uid: Post.uid,
             zone: Post.zone,
-            link_id: Post.link_id,
+            rpid: Post.rpid,
         })
         .from(Post)
         .where(and(
@@ -245,13 +245,13 @@ export async function pOmit(a: Context) {
         const last = DB(a).$with('last').as(
             DB(a)
                 .select({
-                    uid: Post.uid,
+                    pid: Post.pid,
                     time: Post.time,
                 })
                 .from(Post)
                 .where(and(
-                    // tid
-                    eq(Post.zone, post.tid),
+                    // zone
+                    eq(Post.zone, post.zone),
                     // type
                     eq(Post.type, 0),
                 ))
@@ -270,17 +270,17 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    sort: sql<number>`COALESCE((SELECT time FROM ${last}),${Post.time})`,
-                    link_id: sql<number>`(SELECT COALESCE(uid,0) FROM ${last})`,
+                    sort: sql<number>`MIN((SELECT time FROM ${last}),${Post.sort})`, // 如果有不需要更新sort的分区
+                    rpid: sql<number>`(SELECT COALESCE(pid,0) FROM ${last})`,
                 })
-                .where(eq(Post.pid, post.tid)) // 更新thread
+                .where(eq(Post.pid, post.zone)) // 更新thread
             ,
             DB(a)
                 .update(Meta)
                 .set({
                     count: sql<number>`${Meta.count} - 1`,
                 })
-                .where(eq(Meta.uid_tid, post.tid))
+                .where(eq(Meta.uid_tid, post.zone))
             ,
             DB(a)
                 .update(User)
@@ -337,7 +337,7 @@ export async function pList(a: Context) {
             eq(Post.type, 0),
         ))
         .leftJoin(User, eq(Post.uid, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.link_id, Post.zone), eq(QuotePost.pid, Post.link_id), inArray(QuotePost.type, [0, 1])))
+        .leftJoin(QuotePost, and(ne(Post.rpid, Post.zone), eq(QuotePost.pid, Post.rpid), inArray(QuotePost.type, [0, 1])))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.uid))
         .orderBy(asc(Post.zone), asc(Post.type), asc(Post.time))
         .offset((page - 1) * page_size_p)
@@ -345,7 +345,7 @@ export async function pList(a: Context) {
     ]
     const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = a.get('time') > (thread.sort + 604800)
+    const thread_lock = [0].includes(thread.zone) && (a.get('time') > (thread.sort + 604800))
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 

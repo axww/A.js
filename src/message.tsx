@@ -47,7 +47,7 @@ export async function mData(a: Context) {
             sort ? lt(Post.sort, sort) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.uid))
-        .leftJoin(QuotePost, eq(QuotePost.pid, Post.link_id))
+        .leftJoin(QuotePost, eq(QuotePost.pid, Post.rpid))
         .orderBy(desc(Post.call), desc(Post.type), desc(Post.sort))
         .limit(10)
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
