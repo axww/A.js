@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import { and, desc, eq, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
-import { Props, DB, User, Meta, Post } from "./base";
+import { Props, DB, Post, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
 import { TList } from "../render/TList";
 
@@ -16,7 +16,6 @@ export interface TListProps extends Props {
         last_name: string | null;
         last_grade: number | null;
         last_credits: number | null;
-        count: number | null;
     })[]
 }
 
@@ -37,7 +36,7 @@ export async function tList(a: Context) {
             last_name: LastUser.name,
             last_grade: LastUser.grade,
             last_credits: LastUser.credits,
-            count: Meta.count,
+            total: sql<number>`COUNT(*) OVER()`,
         })
         .from(Post)
         .where(and(
@@ -48,7 +47,6 @@ export async function tList(a: Context) {
         .leftJoin(User, eq(User.uid, Post.user))
         .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
-        .leftJoin(Meta, eq(Meta.uid_tid, Post.pid))
         .orderBy(...(user ?
             [desc(Post.attr), desc(Post.user), desc(Post.zone), desc(Post.time)]
             :
@@ -56,12 +54,7 @@ export async function tList(a: Context) {
         ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
-    const count = (await DB(a)
-        .select()
-        .from(Meta)
-        .where(eq(Meta.uid_tid, -user))
-    )?.[0]?.count
-    const pagination = Pagination(page_size_t, count ?? 0, page, 2)
+    const pagination = Pagination(page_size_t, data[0]?.total ?? 0, page, 2)
     const title = await Config.get<string>(a, 'site_name')
     return a.html(TList(a, { i, page, pagination, data, title }));
 }

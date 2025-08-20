@@ -50,13 +50,6 @@ ${Header(a, z)}
                                 ` : ''}
                             </div>
                         </div>
-                        <!-- 右侧统计 -->
-                        <div class="flex items-center flex-shrink-0">
-                            <div class="stat px-2 py-1 lg:px-3">
-                                <div class="stat-title text-xs">回复</div>
-                                <div class="stat-value text-base lg:text-lg">${item.count ?? 0}</div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </a>

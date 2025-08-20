@@ -23,11 +23,6 @@ export const Conf = sqliteTable("conf", {
     value: text(),
 });
 
-export const Meta = sqliteTable("meta", {
-    uid_tid: integer().primaryKey(), // <0用户帖子统计 =0全部帖子统计 >0帖内回复统计
-    count: integer().notNull().default(0),
-});
-
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
     attr: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删

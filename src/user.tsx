@@ -3,7 +3,7 @@ import { sign } from "hono/jwt";
 import { deleteCookie, setCookie } from "hono/cookie";
 import { and, eq, inArray, lt, lte, ne, or, sql } from "drizzle-orm";
 import { Md5 } from "ts-md5";
-import { DB, Meta, Post, User } from "./base";
+import { DB, Post, User } from "./base";
 import { Auth, Config, RandomString } from "./core";
 import { UAuth } from "../render/UAuth";
 import { UConf } from "../render/UConf";
@@ -173,18 +173,10 @@ export async function uBan(a: Context) {
                 attr: 1,
             })
             .where(and(
-                inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
                 eq(Post.attr, 0),
+                inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
                 ne(Post.user, uid),
             )) // 更新thread
-        ,
-        DB(a)
-            .with(topic)
-            .update(Meta)
-            .set({
-                count: sql<number>`${Meta.count} - (SELECT count(pid) FROM ${topic})`,
-            })
-            .where(inArray(Meta.uid_tid, [-uid, 0]))
         ,
         DB(a)
             .update(Post)

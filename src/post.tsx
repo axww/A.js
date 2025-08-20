@@ -2,7 +2,7 @@ import { Context } from "hono";
 import { raw } from "hono/html";
 import { and, desc, eq, gt, inArray, ne, sql, count, lte, asc, getTableColumns } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
-import { DB, Post, User, Props, Meta } from "./base";
+import { DB, Post, User, Props } from "./base";
 import { Auth, Config, Pagination, HTMLFilter, HTMLText } from "./core";
 import { PEdit } from "../render/PEdit";
 import { PList } from "../render/PList";
@@ -122,16 +122,6 @@ export async function pSave(a: Context) {
                 .where(eq(Post.pid, quote.tid))
             ,
             DB(a)
-                .insert(Meta)
-                .values([
-                    { uid_tid: quote.tid, count: 1 },
-                ])
-                .onConflictDoUpdate({
-                    target: Meta.uid_tid,
-                    set: { count: sql<number>`${Meta.count} + 1` }
-                })
-            ,
-            DB(a)
                 .update(User)
                 .set({
                     golds: sql<number>`${User.golds} + 1`,
@@ -157,17 +147,6 @@ export async function pSave(a: Context) {
                     sort: a.get('time'),
                     content,
                 }).returning({ pid: Post.pid })
-            ,
-            DB(a)
-                .insert(Meta)
-                .values([
-                    { uid_tid: -i.uid, count: 1 },
-                    { uid_tid: 0, count: 1 },
-                ])
-                .onConflictDoUpdate({
-                    target: Meta.uid_tid,
-                    set: { count: sql<number>`${Meta.count} + 1` }
-                })
             ,
             DB(a)
                 .update(User)
@@ -225,13 +204,6 @@ export async function pOmit(a: Context) {
                 ))
             ,
             DB(a)
-                .update(Meta)
-                .set({
-                    count: sql<number>`${Meta.count} - 1`,
-                })
-                .where(inArray(Meta.uid_tid, [-post.user, 0]))
-            ,
-            DB(a)
                 .update(User)
                 .set({
                     golds: sql<number>`${User.golds} - 2`,
@@ -276,13 +248,6 @@ export async function pOmit(a: Context) {
                 .where(eq(Post.pid, post.zone)) // 更新thread
             ,
             DB(a)
-                .update(Meta)
-                .set({
-                    count: sql<number>`${Meta.count} - 1`,
-                })
-                .where(eq(Meta.uid_tid, post.zone))
-            ,
-            DB(a)
                 .update(User)
                 .set({
                     golds: sql<number>`${User.golds} - 1`,
@@ -308,7 +273,7 @@ export async function pList(a: Context) {
             credits: User.credits,
             quote_content: sql<string>`''`,
             quote_name: sql<string>`''`,
-            count: Meta.count,
+            total: 0, // 字段对齐
         })
         .from(Post)
         .where(and(
@@ -316,12 +281,11 @@ export async function pList(a: Context) {
             inArray(Post.attr, [0, 1]),
         ))
         .leftJoin(User, eq(Post.user, User.uid))
-        .leftJoin(Meta, eq(Meta.uid_tid, tid))
     )?.[0]
     if (!thread) { return a.notFound() }
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
-    const data = [thread, ...await DB(a)
+    const data = await DB(a)
         .select({
             ...getTableColumns(Post),
             name: User.name,
@@ -329,7 +293,7 @@ export async function pList(a: Context) {
             credits: User.credits,
             quote_content: QuotePost.content,
             quote_name: QuoteUser.name,
-            count: sql<number>`0`,
+            total: sql<number>`COUNT(*) OVER()`,
         })
         .from(Post)
         .where(and(
@@ -342,10 +306,10 @@ export async function pList(a: Context) {
         .orderBy(asc(Post.attr), asc(Post.zone), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
-    ]
-    const pagination = Pagination(page_size_p, thread.count ?? 0, page, 2)
+    const pagination = Pagination(page_size_p, data[0]?.total ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
     const thread_lock = [0].includes(thread.zone) && (a.get('time') > (thread.sort + 604800))
+    data.unshift(thread);
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }
 
@@ -355,7 +319,7 @@ export async function pJump(a: Context) {
     if (tid <= 0 || !time) { return a.redirect('/') }
     const page_size_p = await Config.get<number>(a, 'page_size_p') || 20
     const data = (await DB(a)
-        .select({ count: count() })
+        .select({ cross: count() })
         .from(Post)
         .where(and(
             // attr
@@ -367,6 +331,6 @@ export async function pJump(a: Context) {
         ))
         .orderBy(asc(Post.attr), asc(Post.zone), asc(Post.time))
     )?.[0]
-    const page = Math.ceil(data.count / page_size_p)
+    const page = Math.ceil(data.cross / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)
 }

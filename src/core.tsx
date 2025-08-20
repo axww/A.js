@@ -83,7 +83,6 @@ export async function Auth(a: Context) {
                 eq(Post.call, auth.uid),
             ))
             .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
-            .limit(1)
     )
     const user = (await DB(a)
         .with(message)
