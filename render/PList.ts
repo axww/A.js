@@ -2,9 +2,9 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
 import { HTMLText, URLQuery } from "../src/core";
-import { PListProps } from "../src/post";
+import { pListProps } from "../src/pListProps";
 
-export function PList(a: Context, z: PListProps) {
+export function PList(a: Context, z: pListProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>

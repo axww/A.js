@@ -1,23 +1,9 @@
 import { Context } from "hono";
-import { and, desc, eq, getTableColumns, inArray, lte, sql } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
-import { Props, DB, Post, User } from "./base";
+import { DB, Post, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
 import { TList } from "../render/TList";
-
-export interface TListProps extends Props {
-    page: number
-    pagination: number[]
-    data: (typeof Post.$inferSelect & {
-        name: string | null;
-        grade: number | null;
-        credits: number | null;
-        last_time: number | null;
-        last_name: string | null;
-        last_grade: number | null;
-        last_credits: number | null;
-    })[]
-}
 
 export async function tList(a: Context) {
     const i = await Auth(a)
@@ -64,25 +50,4 @@ export async function tList(a: Context) {
     const pagination = Pagination(page_size_t, data[0]?.total ?? 0, page, 2)
     const title = await Config.get<string>(a, 'site_name')
     return a.html(TList(a, { i, page, pagination, data, title }));
-}
-
-export async function tPeak(a: Context) {
-    const i = await Auth(a)
-    if (!i || i.grade < 2) { return a.text('401', 401) }
-    const tid = parseInt(a.req.param('tid') ?? '0')
-    const post = (await DB(a)
-        .update(Post)
-        .set({
-            attr: sql<number>`CASE WHEN ${Post.attr} = 0 THEN 1 ELSE 0 END`,
-        })
-        .where(and(
-            eq(Post.pid, tid),
-            inArray(Post.attr, [0, 1]),
-            lte(Post.lead, 0),
-        ))
-        .returning()
-    )?.[0]
-    // 如果无法置顶则报错
-    if (!post) { return a.text('410:gone', 410) }
-    return a.text('ok')
 }

@@ -3,26 +3,6 @@ import { and, desc, eq, lt } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
-import { MList } from "../render/MList";
-
-// 清空消息
-export async function mClear(a: Context) {
-    const i = await Auth(a)
-    if (!i) { return a.text('401', 401) }
-    try {
-        await DB(a)
-            .update(User)
-            .set({
-                last_read: a.get('time'),
-            })
-            .where(
-                eq(User.uid, i.uid),
-            );
-    } catch (error) {
-        console.error('切换失败:', error);
-    }
-    return a.json('ok')
-}
 
 export async function mData(a: Context) {
     const i = await Auth(a)
@@ -55,14 +35,4 @@ export async function mData(a: Context) {
         row.post_content = await HTMLText(row.post_content, 300);
     }))
     return a.json(data)
-}
-
-export async function mList(a: Context) {
-    const i = await Auth(a)
-    if (!i) {
-        // 重定向到登录页面而不是返回401
-        return a.redirect('/auth');
-    }
-    const title = '消息'
-    return a.html(MList(a, { i, title }));
 }

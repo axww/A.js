@@ -1,9 +1,9 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
-import { PEditProps } from "../src/post";
+import { pEditProps } from "../src/pEditProps";
 
-export function PEdit(a: Context, z: PEditProps) {
+export function PEdit(a: Context, z: pEditProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>

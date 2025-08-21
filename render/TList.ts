@@ -2,9 +2,9 @@ import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
 import { HTMLText, URLQuery } from "../src/core";
-import { TListProps } from "../src/thread";
+import { tListProps } from "../src/tListProps";
 
-export function TList(a: Context, z: TListProps) {
+export function TList(a: Context, z: tListProps) {
     return html`
 ${Header(a, z)}
 
