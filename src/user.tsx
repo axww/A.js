@@ -161,7 +161,7 @@ export async function uBan(a: Context) {
             .where(and(
                 inArray(Post.attr, [0, 1]),
                 eq(Post.user, uid),
-                lte(Post.zone, 0),
+                lte(Post.lead, 0),
             ))
     )
     // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
@@ -174,7 +174,7 @@ export async function uBan(a: Context) {
             })
             .where(and(
                 eq(Post.attr, 0),
-                inArray(Post.zone, sql<number[]>`(SELECT pid FROM ${topic})`),
+                inArray(Post.lead, sql<number[]>`(SELECT pid FROM ${topic})`),
                 ne(Post.user, uid),
             )) // 更新thread
         ,

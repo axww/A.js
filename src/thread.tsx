@@ -46,7 +46,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [eq(Post.call, 0)]
                 :
-                [user ? eq(Post.user, user) : undefined, eq(Post.zone, -land)]
+                [user ? eq(Post.user, user) : undefined, eq(Post.lead, -land)]
             )
         ))
         .leftJoin(User, eq(User.uid, Post.user))
@@ -56,7 +56,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [desc(Post.call), desc(Post.sort)]
                 :
-                [user ? desc(Post.user) : undefined, desc(Post.zone), desc(Post.time)]
+                [user ? desc(Post.user) : undefined, desc(Post.lead), desc(Post.time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
             ))
         .offset((page - 1) * page_size_t)
@@ -78,7 +78,7 @@ export async function tPeak(a: Context) {
         .where(and(
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
-            lte(Post.zone, 0),
+            lte(Post.lead, 0),
         ))
         .returning()
     )?.[0]

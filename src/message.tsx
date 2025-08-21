@@ -32,7 +32,7 @@ export async function mData(a: Context) {
     const data = await DB(a)
         .select({
             post_pid: Post.pid,
-            post_tid: Post.zone,
+            post_tid: Post.lead,
             post_time: Post.time,
             post_content: Post.content,
             post_uid: User.uid,
