@@ -86,6 +86,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.user,
                 tid: Thread.pid,
+                zone: Thread.zone, // 引用所在Thread的zone
                 sort: Thread.sort,
             })
             .from(Post)
