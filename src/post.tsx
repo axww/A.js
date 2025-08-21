@@ -142,7 +142,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .insert(Post)
                 .values({
-                    uid: i.uid,
+                    user: i.uid,
                     time: a.get('time'),
                     sort: a.get('time'),
                     content,
