@@ -3,12 +3,6 @@ import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from '@libsql/client/node';
 import { sqliteTable, text, integer, index } from "drizzle-orm/sqlite-core";
 
-/*
-【致开发者】
-感谢您的贡献，核心数据库结构，请尽量避免修改。
-如果需要做结构上的变动，请先在GitHub讨论区发帖。
-*/
-
 export function DB(a: Context) {
     let db = a.get('db');
     if (!db) {
@@ -28,7 +22,7 @@ export const Post = sqliteTable("post", {
     attr: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     user: integer().notNull().default(0),
     call: integer().notNull().default(0), // =0主题 <0回复自己 >0回复他人
-    lead: integer().notNull().default(0), // <=0节点 >0所属帖子pid
+    lead: integer().notNull().default(0), // T:<=0节点 P:>0所属Thread帖子pid
     rpid: integer().notNull().default(0), // T:last_pid P:quote_pid
     time: integer().notNull().default(0),
     sort: integer().notNull().default(0), // T:last_time P:post_time
