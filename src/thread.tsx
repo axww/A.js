@@ -23,6 +23,8 @@ export async function tList(a: Context) {
     const i = await Auth(a)
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const user = parseInt(a.req.query('user') ?? '0')
+    const land = parseInt(a.req.query('land') ?? '0')
+    const dynamic_sort = !user && !land // 未指定用户和版块时 使用全局动态排序 
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const LastPost = alias(Post, 'LastPost')
     const LastUser = alias(User, 'LastUser')
@@ -41,17 +43,22 @@ export async function tList(a: Context) {
         .from(Post)
         .where(and(
             inArray(Post.attr, [0, 1]),
-            user ? eq(Post.user, user) : eq(Post.call, 0),
-            user ? eq(Post.zone, 0) : undefined,
+            ...(dynamic_sort ?
+                [eq(Post.call, 0)]
+                :
+                [user ? eq(Post.user, user) : undefined, eq(Post.zone, -land)]
+            )
         ))
         .leftJoin(User, eq(User.uid, Post.user))
         .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
-        .orderBy(...(user ?
-            [desc(Post.attr), desc(Post.user), desc(Post.zone), desc(Post.time)]
-            :
-            [desc(Post.attr), desc(Post.call), desc(Post.sort)]
-        ))
+        .orderBy(desc(Post.attr),
+            ...(dynamic_sort ?
+                [desc(Post.call), desc(Post.sort)]
+                :
+                [user ? desc(Post.user) : undefined, desc(Post.zone), desc(Post.time)]
+                    .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
+            ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
     const pagination = Pagination(page_size_t, data[0]?.total ?? 0, page, 2)
