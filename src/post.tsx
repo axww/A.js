@@ -103,7 +103,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .insert(Post)
                 .values({
-                    uid: i.uid,
+                    user: i.uid,
                     call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
                     zone: quote.tid,
                     time: a.get('time'),
