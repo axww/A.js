@@ -29,9 +29,9 @@ export const Post = sqliteTable("post", {
     user: integer().notNull().default(0),
     call: integer().notNull().default(0), // =0主题 <0回复自己 >0回复他人
     lead: integer().notNull().default(0), // <=0节点 >0所属帖子pid
+    rpid: integer().notNull().default(0), // T:last_pid P:quote_pid
     time: integer().notNull().default(0),
     sort: integer().notNull().default(0), // T:last_time P:post_time
-    rpid: integer().notNull().default(0), // T:last_pid P:quote_pid
     content: text().notNull().default(''),
 }, (table) => [
     index("post:attr,call,sort").on(table.attr, table.call, table.sort),
