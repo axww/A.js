@@ -1,5 +1,6 @@
 import { Context } from "hono";
 import { fileTypeFromBlob } from 'file-type';
+import { Config } from "./core";
 
 export async function fUpload(a: Context) {
     const file = await a.req.blob();
@@ -8,6 +9,7 @@ export async function fUpload(a: Context) {
     }
     const form = new FormData();
     form.append('reqtype', 'fileupload');
+    form.append('userhash', await Config.get<string>(a, 'catbox_userhash'));
     form.append('fileToUpload', file, a.get('time').toString());
     const response = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: form });
     if (response.ok) {

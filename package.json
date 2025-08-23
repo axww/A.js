@@ -11,7 +11,7 @@
     "@libsql/client": "^0.15.12",
     "drizzle-orm": "^0.44.4",
     "file-type": "^21.0.0",
-    "hono": "^4.9.2",
+    "hono": "^4.9.4",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
