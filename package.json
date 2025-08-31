@@ -10,6 +10,7 @@
     "@hono/node-server": "^1.19.1",
     "@libsql/client": "^0.15.14",
     "drizzle-orm": "^0.44.5",
+    "file-type": "^21.0.0",
     "hono": "^4.9.5",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
