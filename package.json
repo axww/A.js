@@ -8,16 +8,16 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.1",
-    "@libsql/client": "^0.15.14",
+    "@libsql/client": "^0.15.15",
     "drizzle-orm": "^0.44.5",
     "file-type": "^21.0.0",
-    "hono": "^4.9.5",
+    "hono": "^4.9.6",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.4",
-    "npm-check-updates": "^18.0.3",
+    "npm-check-updates": "^18.1.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2"
   }
