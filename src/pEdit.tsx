@@ -10,8 +10,9 @@ export async function pEdit(a: Context) {
     if (!i) { return a.text('401', 401) }
     if (i.grade <= -2) { return a.text('403', 403) } // 禁言用户
     const eid = parseInt(a.req.param('eid') ?? '0')
+    let lead = 0
     let title = ""
-    let content = ''
+    let content = ""
     if (eid < 0) {
         title = "编辑"
         const post = (await DB(a)
@@ -25,10 +26,11 @@ export async function pEdit(a: Context) {
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
+        lead = post.lead
         content = raw(post.content) ?? ''
     } else {
         title = "发帖"
     }
     const thread_lock = true;
-    return a.html(PEdit(a, { i, title, eid, content, thread_lock }));
+    return a.html(PEdit(a, { i, title, eid, lead, content, thread_lock }));
 }

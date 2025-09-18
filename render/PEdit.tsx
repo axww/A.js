@@ -36,6 +36,13 @@ ${Header(a, z)}
     <div class="card bg-base-100 shadow-lg">
         <div name="content">${z.content}</div>
     </div>
+    ${z.lead <= 0 ? html`
+    <div class="flex justify-center mt-4">
+        <input type="radio" name="lead" value="0" ${z.lead == 0 ? html`checked` : ''}>讨论
+        <input type="radio" name="lead" value="-1" ${z.lead == -1 ? html`checked` : ''}>促销
+        <input type="radio" name="lead" value="-2" ${z.lead == -2 ? html`checked` : ''}>笔记
+    </div>
+    `: ''}
     <div class="flex justify-center mt-4">
         <button class="btn join-item btn-primary" onclick="post(${z.eid})">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

@@ -1,6 +1,7 @@
 // 发表帖子
 async function post(eid, reload = false) {
     const data = new FormData();
+    data.set('lead', document.querySelector('input[name="lead"]:checked')?.value);
     data.set('content', quill.getSemanticHTML());
     const result = await fetch(new Request('/e/' + eid, { method: 'POST', body: data }))
     if (result.ok) {
