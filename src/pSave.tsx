@@ -10,7 +10,8 @@ export async function pSave(a: Context) {
     if (i.grade <= -2) { return a.text('403', 403) } // 禁言用户
     const body = await a.req.formData()
     const eid = parseInt(a.req.param('eid') ?? '0')
-    const lead = parseInt(body.get('lead')?.toString() ?? '0')
+    const lead = parseInt(body.get('lead')?.toString() ?? '0') // 注意：传入lead>0不能作为引用pid参考凭证！
+    if (lead <= 0 && ![0, -1, -2].includes(lead)) { return a.text('illegal_inputs', 403) } // lead是否在可选分区内
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
@@ -18,7 +19,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .update(Post)
             .set({
-                lead: (lead <= 0) ? lead : Post.lead,
+                lead: sql<number>`CASE WHEN ${Post.lead} <= 0 THEN ${lead} ELSE ${Post.lead} END`, // 回帖不能修改引用
                 content: content,
             })
             .where(and(
