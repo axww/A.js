@@ -10,9 +10,7 @@ export async function pSave(a: Context) {
     if (i.grade <= -2) { return a.text('403', 403) } // 禁言用户
     const body = await a.req.formData()
     const eid = parseInt(a.req.param('eid') ?? '0')
-    console.log(body.get('lead'))
     const lead = parseInt(body.get('lead')?.toString() ?? '0')
-    console.log(body.get('lead')?.toString())
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
@@ -20,6 +18,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .update(Post)
             .set({
+                lead: (lead <= 0) ? lead : Post.lead,
                 content: content,
             })
             .where(and(
@@ -41,7 +40,7 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.user,
                 tid: Thread.pid,
-                lead: Thread.lead, // 引用所在 Thread 的 lead
+                lead: Thread.lead, // 引用所在 Thread 的 lead <= 0
                 sort: Thread.sort,
             })
             .from(Post)
@@ -99,6 +98,7 @@ export async function pSave(a: Context) {
                 .insert(Post)
                 .values({
                     user: i.uid,
+                    lead: (lead <= 0) ? lead : 0,
                     time: a.get('time'),
                     sort: a.get('time'),
                     content,
