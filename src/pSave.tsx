@@ -11,7 +11,7 @@ export async function pSave(a: Context) {
     const eid = parseInt(a.req.param('eid') ?? '0')
     const body = await a.req.formData()
     const land = parseInt(body.get('land')?.toString() ?? '0')
-    if (eid <= 0 && ![1, 2, 3].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
+    if (![1, 2, 3].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
@@ -52,7 +52,7 @@ export async function pSave(a: Context) {
             .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.land} > 0 THEN ${Post.pid} ELSE -${Post.land} END`))
         )?.[0]
         if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if ([1, 2].includes(land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if ([1, 2].includes(quote.thread_land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
