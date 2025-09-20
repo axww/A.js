@@ -13,10 +13,11 @@ async function post(eid, reload = false) {
     } else {
         let errorMsg = await result.text();
         switch (errorMsg) {
-            case 'content_short': errorMsg = '太短了😏请增加内容'; break;
-            case 'too_fast': errorMsg = '太快了🥵请稍后再试'; break;
             case 'too_old': errorMsg = '帖子太旧已无法回复'; break;
+            case 'too_fast': errorMsg = '太快了🥵请稍后再试'; break;
             case 'not_found': errorMsg = '被回复帖子不存在'; break;
+            case 'illegal_land': errorMsg = '请选择合适的分区'; break;
+            case 'content_short': errorMsg = '太短了😏请增加内容'; break;
             case 'ad_limit_day': errorMsg = '每天只能回复一次广告'; break;
             case 'ad_limit_week': errorMsg = '每周只能发表一次广告'; break;
         }
