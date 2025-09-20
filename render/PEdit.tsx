@@ -36,7 +36,7 @@ ${Header(a, z)}
     <div class="card bg-base-100 shadow-lg">
         <div name="content">${z.content}</div>
     </div>
-    ${z.land >= 0 ? html`
+    ${(z.eid == 0 || z.land > 0) ? html`
     <div class="flex justify-center mt-4">
         <input type="radio" name="land" value="1" ${z.land == 1 ? html`checked` : ''}>讨论
         <input type="radio" name="land" value="2" ${z.land == 2 ? html`checked` : ''}>促销

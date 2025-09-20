@@ -26,8 +26,8 @@ export async function pEdit(a: Context) {
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
-        land = post.land // 如果是普通帖子 传出参数无效 也不使用
-        content = raw(post.content) ?? ''
+        land = (post.land > 0) ? post.land : 1; // 编辑非首层 传出参数无效 仅用于跳过滤器
+        content = raw(post.content) ?? '';
     } else {
         title = "发帖"
     }
