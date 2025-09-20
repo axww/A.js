@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, eq, inArray, ne, sql, asc, getTableColumns } from "drizzle-orm";
+import { and, eq, inArray, ne, sql, asc, getTableColumns, gt } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, Config, Pagination, HTMLText } from "./core";
@@ -24,6 +24,7 @@ export async function pList(a: Context) {
         .where(and(
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
+            gt(Post.land, 0), // 必须是Thread(land>0)
         ))
         .leftJoin(User, eq(Post.user, User.uid))
     )?.[0]

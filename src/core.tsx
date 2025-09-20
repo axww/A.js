@@ -222,7 +222,7 @@ export async function HTMLText(html: string | null | undefined, len = 0, first =
 }
 
 export function URLQuery(a: Context, newParams: { [key: string]: string }) {
-    const allow = ['page', 'user'];
+    const allow = ['page', 'user', 'land'];
     const oldParams = a.req.query();
     const query = new URLSearchParams();
     for (let key of allow) {

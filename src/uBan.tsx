@@ -41,7 +41,7 @@ export async function uBan(a: Context) {
             })
             .where(and(
                 eq(Post.attr, 0),
-                inArray(Post.land, sql<number[]>`(SELECT ARRAY_AGG(-pid) FROM (SELECT pid FROM ${topic}) p)`), // 所有tid=pid=-land相反数
+                inArray(Post.land, sql<number[]>`(SELECT -pid FROM ${topic})`), // 所有tid=pid=-land相反数
                 ne(Post.user, uid),
             )) // 更新thread
         ,
