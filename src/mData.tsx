@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, desc, eq, lt } from 'drizzle-orm';
+import { and, desc, eq, lt, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
@@ -12,7 +12,7 @@ export async function mData(a: Context) {
     const data = await DB(a)
         .select({
             post_pid: Post.pid,
-            post_tid: Post.lead,
+            post_tid: sql`-${Post.land}`, // 因为Message都是Post 所以-land就是tid
             post_time: Post.time,
             post_content: Post.content,
             post_uid: User.uid,

@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, eq, inArray, lt, lte, ne, sql } from "drizzle-orm";
+import { and, eq, gt, inArray, lt, ne, sql } from "drizzle-orm";
 import { DB, Post, User } from "./base";
 import { Auth } from "./core";
 
@@ -28,7 +28,7 @@ export async function uBan(a: Context) {
             .where(and(
                 inArray(Post.attr, [0, 1]),
                 eq(Post.user, uid),
-                lte(Post.lead, 0),
+                gt(Post.land, 0), // 必须是Thread(land>0)
             ))
     )
     // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
@@ -41,7 +41,7 @@ export async function uBan(a: Context) {
             })
             .where(and(
                 eq(Post.attr, 0),
-                inArray(Post.lead, sql<number[]>`(SELECT pid FROM ${topic})`),
+                inArray(Post.land, sql<number[]>`(SELECT ARRAY_AGG(-pid) FROM (SELECT pid FROM ${topic}) p)`), // 所有tid=pid=-land相反数
                 ne(Post.user, uid),
             )) // 更新thread
         ,

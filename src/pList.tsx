@@ -43,17 +43,17 @@ export async function pList(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.attr, 0),
-            eq(Post.lead, tid),
+            eq(Post.land, -tid),
         ))
         .leftJoin(User, eq(Post.user, User.uid))
-        .leftJoin(QuotePost, and(ne(Post.rpid, Post.lead), eq(QuotePost.pid, Post.rpid), inArray(QuotePost.attr, [0, 1])))
+        .leftJoin(QuotePost, and(eq(QuotePost.pid, Post.rpid), inArray(QuotePost.attr, [0, 1]), ne(Post.rpid, sql`-${Post.land}`)))
         .leftJoin(QuoteUser, eq(QuoteUser.uid, QuotePost.user))
-        .orderBy(asc(Post.attr), asc(Post.lead), asc(Post.time))
+        .orderBy(asc(Post.attr), asc(Post.land), asc(Post.time))
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     const pagination = Pagination(page_size_p, data[0]?.total ?? 0, page, 2)
     const title = await HTMLText(thread.content, 140, true)
-    const thread_lock = [0].includes(thread.lead) && (a.get('time') > (thread.sort + 604800))
+    const thread_lock = [1, 2].includes(thread.land) && (a.get('time') > (thread.sort + 604800))
     data.unshift(thread);
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))
 }

@@ -2,6 +2,6 @@ import { Props } from "./base";
 
 export interface pEditProps extends Props {
     eid: number,
-    lead: number,
+    land: number,
     content: string,
 }

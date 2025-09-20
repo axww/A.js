@@ -21,8 +21,8 @@ export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
     attr: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
     user: integer().notNull().default(0),
-    call: integer().notNull().default(0), // =0主题 <0回复自己 >0回复他人
-    lead: integer().notNull().default(0), // T:<=0节点 P:>0所属Thread帖子pid
+    call: integer().notNull().default(0), // =0主题 >0回复他人 <0回复自己
+    land: integer().notNull().default(0), // T:>0节点 P:<0所属Thread帖子pid
     rpid: integer().notNull().default(0), // T:last_pid P:quote_pid
     time: integer().notNull().default(0),
     sort: integer().notNull().default(0), // T:last_time P:post_time
@@ -31,10 +31,10 @@ export const Post = sqliteTable("post", {
     index("post:attr,call,sort").on(table.attr, table.call, table.sort),
     // call=0,首页帖子(回复时间排序)
     // call=*,消息通知(指定被回复人)
-    index("post:attr,lead,time").on(table.attr, table.lead, table.time),
-    index("post:attr,user,lead,time").on(table.attr, table.user, table.lead, table.time),
-    // lead<=0,各节点帖子(发表时间排序)
-    // lead>0,帖内回复(发表时间排序)
+    index("post:attr,land,time").on(table.attr, table.land, table.time),
+    index("post:attr,user,land,time").on(table.attr, table.user, table.land, table.time),
+    // land>0,各节点帖子(发表时间排序)
+    // land<0,帖内回复(发表时间排序)
     // user=*,只显示某用户的
 ]);
 

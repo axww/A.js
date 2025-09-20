@@ -32,7 +32,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [eq(Post.call, 0)]
                 :
-                [user ? eq(Post.user, user) : undefined, eq(Post.lead, -land)]
+                [user ? eq(Post.user, user) : undefined, eq(Post.land, land)]
             )
         ))
         .leftJoin(User, eq(User.uid, Post.user))
@@ -42,7 +42,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [desc(Post.call), desc(Post.sort)]
                 :
-                [user ? desc(Post.user) : undefined, desc(Post.lead), desc(Post.time)]
+                [user ? desc(Post.user) : undefined, desc(Post.land), desc(Post.time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
             ))
         .offset((page - 1) * page_size_t)

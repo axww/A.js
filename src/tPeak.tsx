@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, eq, inArray, lte, sql } from 'drizzle-orm';
+import { and, eq, gt, inArray, sql } from 'drizzle-orm';
 import { DB, Post } from "./base";
 import { Auth } from "./core";
 
@@ -15,7 +15,7 @@ export async function tPeak(a: Context) {
         .where(and(
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
-            lte(Post.lead, 0),
+            gt(Post.land, 0), // 必须是Thread(land>0)
         ))
         .returning()
     )?.[0]

@@ -8,10 +8,10 @@ export async function pSave(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
     if (i.grade <= -2) { return a.text('403', 403) } // 禁言用户
-    const body = await a.req.formData()
     const eid = parseInt(a.req.param('eid') ?? '0')
-    const lead = parseInt(body.get('lead')?.toString() ?? '0') // 注意：传入lead>0不能作为引用pid参考凭证！
-    if (lead <= 0 && ![0, -1, -2].includes(lead)) { return a.text('illegal_inputs', 403) } // lead是否在可选分区内
+    const body = await a.req.formData()
+    const land = parseInt(body.get('land')?.toString() ?? '0')
+    if (eid <= 0 && ![1, 2, 3].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
@@ -19,7 +19,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .update(Post)
             .set({
-                lead: sql<number>`CASE WHEN ${Post.lead} <= 0 THEN ${lead} ELSE ${Post.lead} END`, // 回帖不能修改引用
+                land: sql<number>`CASE WHEN ${Post.land} > 0 THEN ${land} ELSE ${Post.land} END`, // 回帖不能修改引用
                 content: content,
             })
             .where(and(
@@ -41,18 +41,18 @@ export async function pSave(a: Context) {
                 pid: Post.pid,
                 uid: Post.user,
                 tid: Thread.pid,
-                lead: Thread.lead, // 引用所在 Thread 的 lead <= 0
-                sort: Thread.sort,
+                thread_land: Thread.land, // 引用所在Thread的land>0
+                thread_sort: Thread.sort,
             })
             .from(Post)
             .where(and(
                 eq(Post.pid, eid),
                 inArray(Post.attr, [0, 1]), // 已删除的内容不能回复
             ))
-            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.lead} <= 0 THEN ${Post.pid} ELSE ${Post.lead} END`))
+            .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.land} > 0 THEN ${Post.pid} ELSE -${Post.land} END`))
         )?.[0]
         if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if ([0].includes(quote.lead) && a.get('time') > quote.sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if ([1, 2].includes(land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -61,7 +61,7 @@ export async function pSave(a: Context) {
                 .values({
                     user: i.uid,
                     call: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
-                    lead: quote.tid,
+                    land: -quote.tid,
                     time: a.get('time'),
                     sort: a.get('time'),
                     rpid: quote.pid,
@@ -72,7 +72,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort: [0].includes(quote.lead) ? a.get('time') : Post.sort, // 需要最后回复排序的帖子分区
+                    sort: [1].includes(quote.thread_land) ? a.get('time') : Post.sort, // 回复后顶贴的分区
                     rpid: sql<number>`LAST_INSERT_ROWID()`,
                 })
                 .where(eq(Post.pid, quote.tid))
@@ -99,7 +99,7 @@ export async function pSave(a: Context) {
                 .insert(Post)
                 .values({
                     user: i.uid,
-                    lead: (lead <= 0) ? lead : 0,
+                    land: land,
                     time: a.get('time'),
                     sort: a.get('time'),
                     content,

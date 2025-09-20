@@ -12,7 +12,7 @@ export async function pOmit(a: Context) {
         .select({
             pid: Post.pid,
             user: Post.user,
-            lead: Post.lead,
+            land: Post.land,
             rpid: Post.rpid,
         })
         .from(Post)
@@ -23,7 +23,7 @@ export async function pOmit(a: Context) {
     )?.[0]
     // 如果无权限或帖子不存在则报错
     if (!post) { return a.text('410:gone', 410) }
-    if (post.lead <= 0) {
+    if (post.land > 0) {
         // 如果删的是Thread
         await DB(a).batch([
             DB(a)
@@ -40,7 +40,7 @@ export async function pOmit(a: Context) {
                 })
                 .where(and(
                     eq(Post.attr, 0),
-                    eq(Post.lead, post.pid),
+                    eq(Post.land, -post.pid), // 隐藏Thread(tid=pid=-land)下所有回复
                 ))
             ,
             DB(a)
@@ -64,10 +64,10 @@ export async function pOmit(a: Context) {
                 .where(and(
                     // attr
                     eq(Post.attr, 0),
-                    // lead
-                    eq(Post.lead, post.lead),
+                    // land
+                    eq(Post.land, post.land), // 找到同一主题下的所有帖子 land本来就<0所以不用正负转换
                 ))
-                .orderBy(desc(Post.attr), desc(Post.lead), desc(Post.time))
+                .orderBy(desc(Post.attr), desc(Post.land), desc(Post.time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -85,7 +85,7 @@ export async function pOmit(a: Context) {
                     sort: sql<number>`MIN((SELECT time FROM ${last}),${Post.sort})`, // 如果有不需要更新sort的分区
                     rpid: sql<number>`(SELECT COALESCE(pid,0) FROM ${last})`,
                 })
-                .where(eq(Post.pid, post.lead)) // 更新thread
+                .where(eq(Post.pid, -post.land)) // 更新Thread(tid=-land)
             ,
             DB(a)
                 .update(User)

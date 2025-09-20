@@ -10,7 +10,7 @@ export async function pEdit(a: Context) {
     if (!i) { return a.text('401', 401) }
     if (i.grade <= -2) { return a.text('403', 403) } // 禁言用户
     const eid = parseInt(a.req.param('eid') ?? '0')
-    let lead = 0
+    let land = 0
     let title = ""
     let content = ""
     if (eid < 0) {
@@ -26,11 +26,11 @@ export async function pEdit(a: Context) {
             ))
         )?.[0]
         if (!post) { return a.text('403', 403) }
-        lead = post.lead
+        land = post.land // 如果是普通帖子 传出参数无效 也不使用
         content = raw(post.content) ?? ''
     } else {
         title = "发帖"
     }
     const thread_lock = true;
-    return a.html(PEdit(a, { i, title, eid, lead, content, thread_lock }));
+    return a.html(PEdit(a, { i, title, eid, land, content, thread_lock }));
 }
