@@ -28,6 +28,9 @@ export async function pEdit(a: Context) {
         if (!post) { return a.text('403', 403) }
         land = post.land;
         content = raw(post.content) ?? '';
+    } else if (eid > 0) {
+        title = "回复"
+        land = -1;
     } else {
         title = "发帖"
     }

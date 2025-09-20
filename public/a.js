@@ -1,7 +1,7 @@
 // 发表帖子
 async function post(eid, reload = false) {
     const data = new FormData();
-    data.set('land', document.querySelector('input[name="land"]:checked')?.value ?? 1); // 非首层添加默认land跳过拦截器
+    data.set('land', document.getElementsByName("land").length ? (document.querySelector('input[name="land"]:checked')?.value ?? 0) : 1); // 没有分区选项时添加默认值跳过拦截器
     data.set('content', quill.getSemanticHTML());
     const result = await fetch(new Request('/e/' + eid, { method: 'POST', body: data }))
     if (result.ok) {
