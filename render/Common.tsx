@@ -44,10 +44,10 @@ export async function Header(a: Context, z: Props) {
           </label>
         </div>
         <div class="flex-1 px-2">
-          <a href="/" class="btn btn-ghost text-xl normal-case">${await Config.get<string>(a, 'site_name')}</a>
-          <a href="/?land=1" class="btn btn-ghost text-xl normal-case">讨论</a>
-          <a href="/?land=2" class="btn btn-ghost text-xl normal-case">促销</a>
-          <a href="/?land=3" class="btn btn-ghost text-xl normal-case">笔记</a>
+          <a href="/" class="btn btn-ghost text-base normal-case">${await Config.get<string>(a, 'site_name')}</a>
+          <a href="/?land=1" class="btn btn-ghost text-base normal-case">讨论</a>
+          <a href="/?land=2" class="btn btn-ghost text-base normal-case">促销</a>
+          <a href="/?land=3" class="btn btn-ghost text-base normal-case">笔记</a>
         </div>
         <div class="flex-none hidden lg:block">
           <ul class="menu menu-horizontal gap-2 items-center">

@@ -22,7 +22,7 @@ ${Header(a, z)}
                                 ${item.attr ? html`
                                     <div class="badge badge-primary badge-sm lg:badge-md flex-shrink-0">置顶</div>
                                 ` : ''}
-                                <h2 class="min-w-0 flex-1 card-title text-base lg:text-lg hover:text-primary line-clamp-3 break-words">
+                                <h2 class="min-w-0 flex-1 card-title text-base hover:text-primary line-clamp-3 break-words">
                                     ${raw(await HTMLText(item.content, 140, true))}
                                 </h2>
                             </div>
