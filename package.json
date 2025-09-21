@@ -2,9 +2,9 @@
   "name": "a",
   "type": "module",
   "scripts": {
+    "chk": "npx ncu -u && npm upgrade",
     "dev": "npx tsx watch src/app.tsx",
-    "www": "npx tsx src/app.tsx",
-    "ncu": "npx ncu -u && npm upgrade"
+    "www": "npx tsx src/app.tsx"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.3",
