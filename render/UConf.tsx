@@ -46,11 +46,28 @@ ${Header(a, z)}
           </div>
         </div>
         <div>
-        <p class="mt-1 text-sm/6 text-gray-600">ID：${z.i.uid}</p>
-        <p class="mt-1 text-sm/6 text-gray-600">金币：${z.i.golds}</p>
-        <p class="mt-1 text-sm/6 text-gray-600">经验：${z.i.credits}</p>
-        <p class="mt-1 text-sm/6 text-gray-600">职务：${role}</p>
-        <p class="mt-1 text-sm/6 text-gray-600"><a href="/?user=${z.i.uid}" target="_blank" class="underline">查看我的帖子</a></p>
+        <p class="mt-1 text-sm/6">
+          <span class="text-gray-900">ID</span>
+          <span class="text-gray-600">${z.i.uid}</span>
+        </p>
+        <p class="mt-1 text-sm/6">
+          <span class="text-gray-900">金币</span>
+          <span class="text-gray-600">${z.i.golds}</span>
+        </p>
+        <p class="mt-1 text-sm/6">
+          <span class="text-gray-900">经验</span>
+          <span class="text-gray-600">${z.i.credits}</span>
+        </p>
+        <p class="mt-1 text-sm/6">
+          <span class="text-gray-900">职务</span>
+          <span class="text-gray-600">${role}</span>
+        </p>
+        <p class="mt-1 text-sm/6">
+          <span class="text-gray-900">我的</span>
+          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=1" target="_blank">讨论</a>
+          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=2" target="_blank">促销</a>
+          <a class="text-gray-600 underline" href="/?user=${z.i.uid}&land=3" target="_blank">笔记</a>
+        </p>
         </div>
     </div>
     <div class="mt-6 flex items-center justify-end gap-x-6">
