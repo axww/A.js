@@ -34,7 +34,7 @@ export async function pSave(a: Context) {
         return a.text('ok')
     } else if (eid > 0) { // 回复
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        if (i.grade == -1 && a.get('time') - i.last_post < 86400) { return a.text('ad_limit_day', 403) } // 广告用户
+        if (i.grade == -1 && a.get('time') - i.last_post < 172800) { return a.text('ad_limit_2day', 403) } // 广告用户
         const Thread = alias(Post, 'Thread')
         const quote = (await DB(a)
             .select({
@@ -52,7 +52,7 @@ export async function pSave(a: Context) {
             .leftJoin(Thread, eq(Thread.pid, sql<number>`CASE WHEN ${Post.land} > 0 THEN ${Post.pid} ELSE -${Post.land} END`))
         )?.[0]
         if (!quote || quote.pid === null) { return a.text('not_found', 403) } // 被回复帖子或主题不存在
-        if ([1, 2].includes(quote.thread_land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 7天后禁止回复
+        if ([1, 2].includes(quote.thread_land) && a.get('time') > quote.thread_sort + 604800) { return a.text('too_old', 429) } // 无热度7天后关闭
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([
@@ -72,7 +72,7 @@ export async function pSave(a: Context) {
             DB(a)
                 .update(Post)
                 .set({
-                    sort: [1].includes(quote.thread_land) ? a.get('time') : Post.sort, // 回复后顶贴的分区
+                    sort: [1, 2].includes(quote.thread_land) ? a.get('time') : Post.sort, // 回复后顶贴的分区
                     rpid: sql<number>`LAST_INSERT_ROWID()`,
                 })
                 .where(eq(Post.pid, quote.tid))
@@ -91,7 +91,7 @@ export async function pSave(a: Context) {
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
         if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
-        if (i.grade == -1 && a.get('time') - i.last_post < 604800) { return a.text('ad_limit_week', 403) } // 广告用户
+        if (i.grade == -1 && a.get('time') - i.last_post < 604800) { return a.text('ad_limit_7day', 403) } // 广告用户
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
         const res = (await DB(a).batch([

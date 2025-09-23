@@ -18,8 +18,8 @@ async function post(eid, reload = false) {
             case 'not_found': errorMsg = '被回复帖子不存在'; break;
             case 'illegal_land': errorMsg = '请选择合适的分区'; break;
             case 'content_short': errorMsg = '太短了😏请增加内容'; break;
-            case 'ad_limit_day': errorMsg = '每天只能回复一次广告'; break;
-            case 'ad_limit_week': errorMsg = '每周只能发表一次广告'; break;
+            case 'ad_limit_2day': errorMsg = '2天可回复一次广告'; break;
+            case 'ad_limit_7day': errorMsg = '7天可发表一次广告'; break;
         }
         // 创建一个简单的错误提示
         const alert = document.createElement('div');
