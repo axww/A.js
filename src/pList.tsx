@@ -4,6 +4,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, Config, Pagination, HTMLText } from "./core";
 import { PList } from "../render/PList";
+import { raw } from "hono/html";
 
 export async function pList(a: Context) {
     const i = await Auth(a)
@@ -53,7 +54,7 @@ export async function pList(a: Context) {
         .offset((page - 1) * page_size_p)
         .limit(page_size_p)
     const pagination = Pagination(page_size_p, data[0]?.total ?? 0, page, 2)
-    const title = await HTMLText(thread.content, 140, true)
+    const title = raw(await HTMLText(thread.content, 140, true))
     const thread_lock = [1, 2].includes(thread.land) && (a.get('time') > (thread.sort + 604800))
     data.unshift(thread);
     return a.html(PList(a, { i, page, pagination, data, title, thread_lock }))

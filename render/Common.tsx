@@ -13,7 +13,7 @@ export async function Header(a: Context, z: Props) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${z.title}</title>
   <meta name="keywords" content="${z.keywords ?? await Config.get<string>(a, 'site_keywords', false)}">
-  <meta name="description" content="${z.description ?? await Config.get<string>(a, 'site_description', false)}">
+  <meta name="description" content="${raw(z.description ?? await Config.get<string>(a, 'site_description', false))}">
   <meta name="robots" content="index, follow">
   <link rel="stylesheet" type="text/css" href="/a.css" />
   <script type="text/javascript" src="/a.js"></script>
@@ -33,8 +33,7 @@ export async function Header(a: Context, z: Props) {
         </div>
         <div class="flex flex-1 px-2">
           <a href="/" class="btn btn-ghost text-base normal-case">${await Config.get<string>(a, 'site_name', false)}</a>
-          <a href="/?land=2" class="btn btn-ghost text-base normal-case">促销</a>
-          <a href="/?land=3" class="btn btn-ghost text-base normal-case">笔记</a>
+          ${raw(await Config.get<string>(a, 'navi', false))}
         </div>
         <div class="flex-none hidden lg:block">
           <ul class="menu menu-horizontal gap-2 items-center">

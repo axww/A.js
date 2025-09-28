@@ -4,6 +4,7 @@ import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
 import { TList } from "../render/TList";
+import { raw } from "hono/html";
 
 export async function tList(a: Context) {
     const i = await Auth(a)
@@ -48,6 +49,6 @@ export async function tList(a: Context) {
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
     const pagination = Pagination(page_size_t, data[0]?.total ?? 0, page, 2)
-    const title = await Config.get<string>(a, 'site_name', false);
-    return a.html(TList(a, { i, page, pagination, data, title }));
+    const title = raw(await Config.get<string>(a, 'site_name', false))
+    return a.html(TList(a, { i, page, pagination, data, title }))
 }
