@@ -48,9 +48,9 @@ export class Config {
     }
     static async get<T>(a: Context, key: string, match: boolean | undefined = undefined): Promise<T> {
         if (this.void) { await this.init(a); }
-        // match = true 匹配域名配置 如果未找到则返回null
-        // match = false 匹配域名配置 如果未找到则返回默认值
-        let conf = (match === undefined ? null : this.data.get(a.get('hostname') + '.' + key));
+        // match = true 匹配域名配置 如果未找到 返回undefined
+        // match = false 匹配域名配置 如果未找到 继续查找默认值
+        let conf = (match === undefined ? undefined : this.data.get(a.get('hostname') + '.' + key));
         if (!match && conf === undefined) { conf = this.data.get(key); }
         return conf as T;
     }
