@@ -4,29 +4,17 @@ import { Props } from "../src/base";
 import { Config } from "../src/core";
 
 export async function Header(a: Context, z: Props) {
-  const siteName = await Config.get<string>(a, 'site_name');
-  const siteDesc = await Config.get<string>(a, 'site_description');
-  const keywords = await Config.get<string>(a, 'site_keywords');
-  const pageTitle = z.title && z.title !== siteName ? `${z.title} - ${siteName}` : siteName;
-  const pageDesc = z.description || siteDesc;
-  const currentUrl = a.req.url;
 
   return html`
 <!DOCTYPE HTML>
-<html data-theme="light" lang="zh-CN">
+<html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${raw(pageTitle)}</title>
-  <meta name="description" content="${raw(pageDesc)}">
-  <meta name="keywords" content="${keywords}">
+  <title>${z.title}</title>
+  <meta name="keywords" content="${z.keywords ?? await Config.get<string>(a, 'site_keywords', true)}">
+  <meta name="description" content="${z.description ?? await Config.get<string>(a, 'site_description', true)}">
   <meta name="robots" content="index, follow">
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="${currentUrl}" />
-  <meta property="og:site_name" content="${siteName}" />
-  <meta property="og:title" content="${raw(pageTitle)}" />
-  <meta property="og:description" content="${raw(pageDesc)}" />
-  <link rel="canonical" href="${currentUrl}" />
   <link rel="stylesheet" type="text/css" href="/a.css" />
   <script type="text/javascript" src="/a.js"></script>
   ${z.head_external ?? ''}
@@ -44,7 +32,7 @@ export async function Header(a: Context, z: Props) {
           </label>
         </div>
         <div class="flex flex-1 px-2">
-          <a href="/" class="btn btn-ghost text-base normal-case">${await Config.get<string>(a, 'site_name')}</a>
+          <a href="/" class="btn btn-ghost text-base normal-case">${await Config.get<string>(a, 'site_name', true)}</a>
           <a href="/?land=2" class="btn btn-ghost text-base normal-case">促销</a>
           <a href="/?land=3" class="btn btn-ghost text-base normal-case">笔记</a>
         </div>
@@ -95,14 +83,13 @@ export async function Header(a: Context, z: Props) {
 }
 
 export async function Footer(a: Context, z: Props) {
-  const friendLinks = await Config.get<{ url: string; name: string; }[]>(a, 'friend_link') ?? [];
   return html`
     </main>
     <!-- Footer -->
     <footer class="footer footer-center p-4 bg-base-100 text-base-content border-t">
       <div class="flex flex-col items-center gap-2">
         <div class="flex flex-wrap justify-center gap-x-4 gap-y-1">
-          ${Object.values(friendLinks).map(item => html`
+          ${Object.values(await Config.get<{ url: string; name: string; }[]>(a, 'friend_link', true) ?? []).map(item => html`
             <a href="${item.url}" target="_blank" class="link link-hover text-sm text-base-content/70 hover:text-primary">${item.name}</a>
           `)}
         </div>
@@ -120,7 +107,7 @@ export async function Footer(a: Context, z: Props) {
       <label for="drawer-toggle" class="drawer-overlay"></label>
       <div class="menu p-4 w-80 min-h-full bg-base-100">
         <!-- 抽屉标题 -->
-        <div class="font-bold text-lg mb-4 px-4">${await Config.get<string>(a, 'site_name')}</div>
+        <div class="font-bold text-lg mb-4 px-4">${await Config.get<string>(a, 'site_name', true)}</div>
         <!-- 抽屉菜单项 -->
         <ul class="menu menu-lg gap-2">
           ${z.i ? html`

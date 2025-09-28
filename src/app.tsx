@@ -22,10 +22,14 @@ import { pEdit } from './pEdit';
 import { pSave } from './pSave';
 import { pOmit } from './pOmit';
 
-declare module 'hono' { interface ContextVariableMap { db: any, time: number } }
+declare module 'hono' { interface ContextVariableMap { db: any, time: number, hostname: string } }
 const app = new Hono();
 
-app.use((c, next) => { c.set('time', Math.floor(Date.now() / 1000)); return next(); })
+app.use((a, next) => {
+  a.set('time', Math.floor(Date.now() / 1000));
+  a.set('hostname', new URL(a.req.url).hostname);
+  return next();
+})
 app.use('/*', serveStatic({ root: './public/' }))
 
 app.get('/:page{[0-9]+}?', tList);

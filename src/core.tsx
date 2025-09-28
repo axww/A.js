@@ -46,9 +46,9 @@ export class Config {
             }
         });
     }
-    static async get<T>(a: Context, key: string): Promise<T> {
+    static async get<T>(a: Context, key: string, match: true | undefined = undefined): Promise<T> {
         if (this.void) { await this.init(a); }
-        return this.data.get(key) as T;
+        return ((match && this.data.get(a.get('hostname') + '.' + key)) ?? this.data.get(key)) as T;
     }
     static async set(a: Context, key: string, value: any) {
         if (this.void) { await this.init(a); }

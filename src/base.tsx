@@ -55,7 +55,8 @@ export const User = sqliteTable("user", {
 export interface Props {
     i: Omit<typeof User.$inferSelect, "hash" | "salt"> & { last_message: number } | undefined
     title: string
-    description?: string;  // 可选的描述属性，用于SEO
+    keywords?: string; // SEO 可选关键词
+    description?: string; // SEO 可选描述
     thread_lock?: boolean
     head_external?: string
 }
