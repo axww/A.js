@@ -46,9 +46,13 @@ export class Config {
             }
         });
     }
-    static async get<T>(a: Context, key: string, match: true | undefined = undefined): Promise<T> {
+    static async get<T>(a: Context, key: string, match: boolean | undefined = undefined): Promise<T> {
         if (this.void) { await this.init(a); }
-        return ((match && this.data.get(a.get('hostname') + '.' + key)) ?? this.data.get(key)) as T;
+        // match = true 匹配域名配置 如果未找到则返回null
+        // match = false 匹配域名配置 如果未找到则返回默认值
+        let conf = (match === undefined ? null : this.data.get(a.get('hostname') + '.' + key));
+        if (!conf && !match) { conf = this.data.get(key); }
+        return conf as T;
     }
     static async set(a: Context, key: string, value: any) {
         if (this.void) { await this.init(a); }

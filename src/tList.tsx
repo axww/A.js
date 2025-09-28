@@ -8,8 +8,8 @@ import { TList } from "../render/TList";
 export async function tList(a: Context) {
     const i = await Auth(a)
     const page = parseInt(a.req.query('page') ?? '0') || 1
-    const user = parseInt(a.req.query('user') ?? '0')
-    const land = parseInt(a.req.query('land') ?? '0')
+    const user = await Config.get<number>(a, 'user', true) ?? parseInt(a.req.query('user') ?? '0')
+    const land = await Config.get<number>(a, 'land', true) ?? parseInt(a.req.query('land') ?? '0')
     const dynamic_sort = !user && !land // 未指定用户和版块时 使用全局动态排序 
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const LastPost = alias(Post, 'LastPost')
@@ -48,6 +48,6 @@ export async function tList(a: Context) {
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
     const pagination = Pagination(page_size_t, data[0]?.total ?? 0, page, 2)
-    const title = await Config.get<string>(a, 'site_name', true);
+    const title = await Config.get<string>(a, 'site_name', false);
     return a.html(TList(a, { i, page, pagination, data, title }));
 }
