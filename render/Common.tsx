@@ -33,7 +33,9 @@ export async function Header(a: Context, z: Props) {
         </div>
         <div class="flex flex-1 px-2">
           <a href="/" class="btn btn-ghost text-base normal-case">${await Config.get<string>(a, 'site_name', false)}</a>
-          ${raw(await Config.get<string>(a, 'site_navi', false))}
+          ${Object.values(await Config.get<{ url: string; name: string; }[]>(a, 'site_navi', false) ?? []).map(item => html`
+          <a href="${item.url}" class="btn btn-ghost text-base normal-case">${item.name}</a>
+          `)}
         </div>
         <div class="flex-none hidden lg:block">
           <ul class="menu menu-horizontal gap-2 items-center">
