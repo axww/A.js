@@ -19,18 +19,21 @@ export const Conf = sqliteTable("conf", {
 
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
-    attr: integer().notNull().default(0), // 0正常 T1置顶 P1帖删 2自删 3被删
+    attr: integer().notNull().default(0), // 0:正常 T1:置顶 P1:帖删 2:自删 3:被删
     user: integer().notNull().default(0),
-    call: integer().notNull().default(0), // =0主题 >0回复他人 <0回复自己
+    call: integer().notNull().default(0), // 0:主题 >0:回复他人 <0:回复自己
     land: integer().notNull().default(0), // T:>0节点 P:<0所属Thread帖子pid
     rpid: integer().notNull().default(0), // T:last_pid P:quote_pid
+    sort: integer().notNull().default(0), // T:last_time P:gain_golds
     time: integer().notNull().default(0),
-    sort: integer().notNull().default(0), // T:last_time P:post_time
     content: text().notNull().default(''),
 }, (table) => [
-    index("post:attr,call,sort").on(table.attr, table.call, table.sort),
+    index("post:attr,call,time").on(table.attr, table.call, table.time),
     // call=0,首页帖子(回复时间排序)
     // call=*,消息通知(指定被回复人)
+    index("post:attr,land,sort").on(table.attr, table.land, table.sort),
+    // sort:T,最后回复时间
+    // sort:P,帖子获得金币
     index("post:attr,land,time").on(table.attr, table.land, table.time),
     index("post:attr,user,land,time").on(table.attr, table.user, table.land, table.time),
     // land>0,各节点帖子(发表时间排序)
