@@ -12,8 +12,8 @@ export async function mData(a: Context) {
     const data = await DB(a)
         .select({
             post_pid: Post.pid,
-            post_tid: sql`-${Post.land}`, // 因为Message都是Post 所以-land就是tid
-            post_time: Post.time,
+            post_tid: sql`-${Post.root_land}`, // 因为Message都是Post 所以-land就是tid
+            post_time: Post.date_time,
             post_content: Post.content,
             post_uid: User.uid,
             post_name: User.name,

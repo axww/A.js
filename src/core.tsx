@@ -79,7 +79,7 @@ export async function Auth(a: Context) {
     const message = DB(a).$with('message').as(
         DB(a)
             .select({
-                time: Post.time,
+                time: Post.date_time,
             })
             .from(Post)
             .where(and(

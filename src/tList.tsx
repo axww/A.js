@@ -21,7 +21,7 @@ export async function tList(a: Context) {
             name: User.name,
             grade: User.grade,
             credits: User.credits,
-            last_time: LastPost.time,
+            last_time: LastPost.date_time,
             last_name: LastUser.name,
             last_grade: LastUser.grade,
             last_credits: LastUser.credits,
@@ -33,7 +33,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [eq(Post.call_land, 0)]
                 :
-                [user ? eq(Post.user, user) : undefined, eq(Post.land, land)]
+                [user ? eq(Post.user, user) : undefined, eq(Post.root_land, land)]
             )
         ))
         .leftJoin(User, eq(User.uid, Post.user))
@@ -43,7 +43,7 @@ export async function tList(a: Context) {
             ...(dynamic_sort ?
                 [desc(Post.call_land), desc(Post.show_time)]
                 :
-                [user ? desc(Post.user) : undefined, desc(Post.land), desc(Post.time)]
+                [user ? desc(Post.user) : undefined, desc(Post.root_land), desc(Post.date_time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
             ))
         .offset((page - 1) * page_size_t)

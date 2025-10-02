@@ -12,8 +12,8 @@ export async function pOmit(a: Context) {
         .select({
             pid: Post.pid,
             user: Post.user,
-            land: Post.land,
             refer_pid: Post.refer_pid,
+            root_land: Post.root_land,
         })
         .from(Post)
         .where(and(
@@ -23,7 +23,7 @@ export async function pOmit(a: Context) {
     )?.[0]
     // 如果无权限或帖子不存在则报错
     if (!post) { return a.text('410:gone', 410) }
-    if (post.land > 0) {
+    if (post.root_land > 0) {
         // 如果删的是Thread
         await DB(a).batch([
             DB(a)
@@ -40,7 +40,7 @@ export async function pOmit(a: Context) {
                 })
                 .where(and(
                     eq(Post.attr, 0),
-                    eq(Post.land, -post.pid), // 隐藏Thread(tid=pid=-land)下所有回复
+                    eq(Post.root_land, -post.pid), // 隐藏Thread(tid=pid=-root_land)下所有回复
                 ))
             ,
             DB(a)
@@ -58,16 +58,16 @@ export async function pOmit(a: Context) {
             DB(a)
                 .select({
                     pid: Post.pid,
-                    time: Post.time,
+                    time: Post.date_time,
                 })
                 .from(Post)
                 .where(and(
                     // attr
                     eq(Post.attr, 0),
-                    // land
-                    eq(Post.land, post.land), // 找到同一主题下的所有帖子 land本来就<0所以不用正负转换
+                    // root_land
+                    eq(Post.root_land, post.root_land), // 找到同一主题下的所有帖子 root_land本来就<0所以不用正负转换
                 ))
-                .orderBy(desc(Post.attr), desc(Post.land), desc(Post.time))
+                .orderBy(desc(Post.attr), desc(Post.root_land), desc(Post.date_time))
                 .limit(1)
         )
         await DB(a).batch([
@@ -85,7 +85,7 @@ export async function pOmit(a: Context) {
                     refer_pid: sql<number>`(SELECT COALESCE(pid,0) FROM ${last})`,
                     show_time: sql<number>`MIN((SELECT time FROM ${last}),${Post.show_time})`, // 如果有不需要更新show_time的分区
                 })
-                .where(eq(Post.pid, -post.land)) // 更新Thread(tid=-land)
+                .where(eq(Post.pid, -post.root_land)) // 更新Thread(tid=-root_land)
             ,
             DB(a)
                 .update(User)

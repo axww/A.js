@@ -28,7 +28,7 @@ export async function uBan(a: Context) {
             .where(and(
                 inArray(Post.attr, [0, 1]),
                 eq(Post.user, uid),
-                gt(Post.land, 0), // 必须是Thread(land>0)
+                gt(Post.root_land, 0), // 必须是Thread(root_land>0)
             ))
     )
     // 删除违规者所有帖子和回复，以及他人的回复。with要在update之前，否则post改变后子查询失效。
@@ -41,7 +41,7 @@ export async function uBan(a: Context) {
             })
             .where(and(
                 eq(Post.attr, 0),
-                inArray(Post.land, sql<number[]>`(SELECT -pid FROM ${topic})`), // 所有tid=pid=-land相反数
+                inArray(Post.root_land, sql<number[]>`(SELECT -pid FROM ${topic})`), // 所有tid=pid=-root_land相反数
                 ne(Post.user, uid),
             )) // 更新thread
         ,

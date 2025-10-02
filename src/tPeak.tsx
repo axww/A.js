@@ -15,7 +15,7 @@ export async function tPeak(a: Context) {
         .where(and(
             eq(Post.pid, tid),
             inArray(Post.attr, [0, 1]),
-            gt(Post.land, 0), // 必须是Thread(land>0)
+            gt(Post.root_land, 0), // 必须是Thread(root_land>0)
         ))
         .returning()
     )?.[0]

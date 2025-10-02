@@ -15,11 +15,11 @@ export async function pJump(a: Context) {
             // attr
             eq(Post.attr, 0),
             // land
-            eq(Post.land, -tid),
+            eq(Post.root_land, -tid),
             // time
-            lte(Post.time, time),
+            lte(Post.date_time, time),
         ))
-        .orderBy(asc(Post.attr), asc(Post.land), asc(Post.time))
+        .orderBy(asc(Post.attr), asc(Post.root_land), asc(Post.date_time))
     )?.[0]
     const page = Math.ceil(data.cross / page_size_p)
     return a.redirect('/t/' + tid + '/' + page + '?' + time, 301)
