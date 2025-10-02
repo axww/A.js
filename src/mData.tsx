@@ -7,7 +7,7 @@ import { Auth, HTMLText } from "./core";
 export async function mData(a: Context) {
     const i = await Auth(a)
     if (!i) { return a.text('401', 401) }
-    const sort = parseInt(a.req.query('sort') ?? '0')
+    const show_time = parseInt(a.req.query('show_time') ?? '0')
     const QuotePost = alias(Post, 'QuotePost')
     const data = await DB(a)
         .select({
@@ -23,12 +23,12 @@ export async function mData(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.attr, 0),
-            eq(Post.call, i.uid),
-            sort ? lt(Post.sort, sort) : undefined,
+            eq(Post.call_land, i.uid),
+            show_time ? lt(Post.show_time, show_time) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.user))
-        .leftJoin(QuotePost, eq(QuotePost.pid, Post.rpid))
-        .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
+        .leftJoin(QuotePost, eq(QuotePost.pid, Post.refer_pid))
+        .orderBy(desc(Post.attr), desc(Post.call_land), desc(Post.show_time))
         .limit(10)
     await Promise.all(data.map(async function (row: { quote_content: string | null | undefined; post_content: string | null | undefined; }) {
         row.quote_content = await HTMLText(row.quote_content, 300);

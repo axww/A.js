@@ -31,17 +31,17 @@ export async function tList(a: Context) {
         .where(and(
             inArray(Post.attr, [0, 1]),
             ...(dynamic_sort ?
-                [eq(Post.call, 0)]
+                [eq(Post.call_land, 0)]
                 :
                 [user ? eq(Post.user, user) : undefined, eq(Post.land, land)]
             )
         ))
         .leftJoin(User, eq(User.uid, Post.user))
-        .leftJoin(LastPost, eq(LastPost.pid, Post.rpid))
+        .leftJoin(LastPost, eq(LastPost.pid, Post.refer_pid))
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
         .orderBy(desc(Post.attr),
             ...(dynamic_sort ?
-                [desc(Post.call), desc(Post.sort)]
+                [desc(Post.call_land), desc(Post.show_time)]
                 :
                 [user ? desc(Post.user) : undefined, desc(Post.land), desc(Post.time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined

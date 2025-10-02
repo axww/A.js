@@ -52,7 +52,7 @@ ${Header(a, z)}
 
 <script>
 let messageCount = 0;
-let sort = 0;
+let show_time = 0;
 let last_read = ${z.i.last_read};
 
 async function mClear() {
@@ -94,7 +94,7 @@ async function mFetch() {
         loadBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> 加载中...';
         
         // 调用API，获取所有消息
-        const response = await fetch('/mData?sort='+sort);
+        const response = await fetch('/mData?show_time='+show_time);
         
         // 检查响应状态
         if (response.status === 401) {
@@ -114,7 +114,7 @@ async function mFetch() {
         loadBtn.disabled = false;
         
         if (data.length) {
-            sort = data.at(-1).post_time;
+            show_time = data.at(-1).post_time;
             messageCount += data.length;
             
             // 分离新消息和已读消息

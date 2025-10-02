@@ -84,9 +84,9 @@ export async function Auth(a: Context) {
             .from(Post)
             .where(and(
                 eq(Post.attr, 0),
-                eq(Post.call, auth.uid),
+                eq(Post.call_land, auth.uid),
             ))
-            .orderBy(desc(Post.attr), desc(Post.call), desc(Post.sort))
+            .orderBy(desc(Post.attr), desc(Post.call_land), desc(Post.show_time))
     )
     const user = (await DB(a)
         .with(message)
