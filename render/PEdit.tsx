@@ -40,7 +40,7 @@ ${Header(a, z)}
     <div class="flex justify-center mt-4">
     ${(z.land == 4) ? html`
         <input type="radio" name="land" value="4" checked hidden>
-    ` : `
+    ` : html`
         <input type="radio" name="land" value="1" ${z.land == 1 ? html`checked` : ''}>讨论
         <input type="radio" name="land" value="2" ${z.land == 2 ? html`checked` : ''}>促销
         <input type="radio" name="land" value="3" ${z.land == 3 ? html`checked` : ''}>笔记
