@@ -9,7 +9,7 @@
   "dependencies": {
     "@hono/node-server": "^1.19.5",
     "@libsql/client": "^0.15.15",
-    "drizzle-orm": "^0.44.5",
+    "drizzle-orm": "^0.44.6",
     "file-type": "^21.0.0",
     "hono": "^4.9.9",
     "htmlrewriter": "^0.0.13",
