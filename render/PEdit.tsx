@@ -1,10 +1,9 @@
 import { Context } from "hono";
 import { html, raw } from "hono/html";
 import { Header, Footer } from "./Common";
-import { Config } from "../src/core";
 import { pEditProps } from "../src/pEditProps";
 
-export async function PEdit(a: Context, z: pEditProps) {
+export function PEdit(a: Context, z: pEditProps) {
     z.head_external = raw(`
         <link href="/quill.snow.css" rel="stylesheet" />
         <style>
@@ -39,7 +38,7 @@ ${Header(a, z)}
     </div>
     ${(z.land >= 0) ? html`
     <div class="flex justify-center mt-4">
-    ${(await Config.get<number>(a, 'land', true) == 4) ? html`
+    ${(a.get('land') == 4) ? html`
         <input type="radio" name="land" value="4" checked hidden>
     ` : html`
         <input type="radio" name="land" value="1" ${z.land == 1 ? html`checked` : ''}>讨论

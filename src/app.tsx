@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { bodyLimit } from 'hono/body-limit';
+import { Config } from './core';
 import { uAuth } from './uAuth';
 import { mList } from './mList';
 import { mData } from './mData';
@@ -22,11 +23,21 @@ import { pEdit } from './pEdit';
 import { pSave } from './pSave';
 import { pOmit } from './pOmit';
 
-declare module 'hono' { interface ContextVariableMap { db: any, time: number, hostname: string } }
+declare module 'hono' {
+  interface ContextVariableMap {
+    db: any,
+    time: number,
+    user: number,
+    land: number,
+    hostname: string
+  }
+}
 const app = new Hono();
 
-app.use((a, next) => {
+app.use(async (a, next) => {
   a.set('time', Math.floor(Date.now() / 1000));
+  a.set('user', await Config.get<number>(a, 'user', true));
+  a.set('land', await Config.get<number>(a, 'land', true));
   a.set('hostname', new URL(a.req.url).hostname);
   return next();
 })
