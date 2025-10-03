@@ -19,12 +19,12 @@ export const Conf = sqliteTable("conf", {
 
 export const Post = sqliteTable("post", {
     pid: integer().primaryKey(),
-    attr: integer().notNull().default(0), // 0正常 1连带删除 2自己删除 3管理删除
+    attr: integer().notNull().default(0), // 0正常 T1置顶 P1连带删除 2自己删除 3管理删除
     user: integer().notNull().default(0),
     refer_pid: integer().notNull().default(0), // T:话题最新回复 P:回复引用帖子
-    call_land: integer().notNull().default(0), // T:话题聚合分区 P:回复呼叫用户
+    call_land: integer().notNull().default(0), // T>=0:话题聚合分区 P<0:回复呼叫用户
     show_time: integer().notNull().default(0), // T:最后回复时间 P:帖子发表时间(消息用)
-    root_land: integer().notNull().default(0), // T:话题所属分区 P:回复所属帖子
+    root_land: integer().notNull().default(0), // T>0:话题所属分区 P<0:回复所属帖子
     date_time: integer().notNull().default(0),
     content: text().notNull().default(''),
 }, (table) => [
