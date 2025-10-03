@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, desc, eq, lt, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, lt, sql } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, HTMLText } from "./core";
@@ -23,7 +23,8 @@ export async function mData(a: Context) {
         .from(Post)
         .where(and(
             eq(Post.attr, 0),
-            eq(Post.call_land, i.uid),
+            eq(Post.call_land, -i.uid),
+            gt(Post.show_time, 0),
             show_time ? lt(Post.show_time, show_time) : undefined,
         ))
         .leftJoin(User, eq(User.uid, Post.user))

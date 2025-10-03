@@ -79,12 +79,12 @@ export async function Auth(a: Context) {
     const message = DB(a).$with('message').as(
         DB(a)
             .select({
-                time: Post.date_time,
+                show_time: Post.show_time,
             })
             .from(Post)
             .where(and(
                 eq(Post.attr, 0),
-                eq(Post.call_land, auth.uid),
+                eq(Post.call_land, -auth.uid),
             ))
             .orderBy(desc(Post.attr), desc(Post.call_land), desc(Post.show_time))
     )
@@ -92,7 +92,7 @@ export async function Auth(a: Context) {
         .with(message)
         .select({
             ...getTableColumns(User),
-            last_message: sql<number>`(SELECT COALESCE(time,0) FROM ${message})`,
+            last_call: sql<number>`(SELECT COALESCE(show_time,0) FROM ${message})`,
         })
         .from(User)
         .where(eq(User.uid, auth.uid))

@@ -61,8 +61,8 @@ export async function pSave(a: Context) {
                 .values({
                     user: i.uid,
                     refer_pid: quote.pid,
-                    call_land: (i.uid != quote.uid) ? quote.uid : -quote.uid, // 如果回复的是自己则隐藏
-                    show_time: a.get('time'),
+                    call_land: -quote.uid,
+                    show_time: (i.uid == quote.uid) ? 0 : a.get('time'), // 如果回复的是自己则隐藏
                     root_land: -quote.tid,
                     date_time: a.get('time'),
                     content,
