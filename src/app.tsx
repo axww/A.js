@@ -27,8 +27,6 @@ declare module 'hono' {
   interface ContextVariableMap {
     db: any,
     time: number,
-    user: number,
-    land: number,
     hostname: string
   }
 }
@@ -36,8 +34,6 @@ const app = new Hono();
 
 app.use(async (a, next) => {
   a.set('time', Math.floor(Date.now() / 1000));
-  a.set('user', await Config.get<number>(a, 'user', true));
-  a.set('land', await Config.get<number>(a, 'land', true));
   a.set('hostname', new URL(a.req.url).hostname);
   return await next();
 })
