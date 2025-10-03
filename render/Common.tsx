@@ -90,7 +90,7 @@ export async function Footer(a: Context, z: Props) {
     <footer class="footer footer-center p-4 bg-base-100 text-base-content border-t">
       <div class="flex flex-col items-center gap-2">
         <div class="flex flex-wrap justify-center gap-x-4 gap-y-1">
-          ${Object.values(await Config.get<{ url: string; name: string; }[]>(a, 'friend_link', false) ?? []).map(item => html`
+          ${Object.values(await Config.get<{ url: string; name: string; }[]>(a, 'site_link', false) ?? []).map(item => html`
             <a href="${item.url}" target="_blank" class="link link-hover text-sm text-base-content/70 hover:text-primary">${item.name}</a>
           `)}
         </div>

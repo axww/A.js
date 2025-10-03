@@ -11,7 +11,8 @@ export async function pSave(a: Context) {
     const eid = parseInt(a.req.param('eid') ?? '0')
     const body = await a.req.formData()
     const land = parseInt(body.get('land')?.toString() ?? '0')
-    if (![1, 2, 3].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
+    const land_comb = [4].includes(land) ? land : 0 // call_land 合并至聚合版块 还是独立分版
+    if (![1, 2, 3, 4].includes(land)) { return a.text('illegal_land', 403) } // 是否在可选分区内
     const raw = body.get('content')?.toString() ?? ''
     if (eid < 0) { // 编辑
         const [content, length] = await HTMLFilter(raw)
@@ -19,6 +20,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .update(Post)
             .set({
+                call_land: sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${land_comb} ELSE ${Post.root_land} END`, // 回帖不能修改引用
                 root_land: sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${land} ELSE ${Post.root_land} END`, // 回帖不能修改引用
                 content: content,
             })
@@ -73,7 +75,7 @@ export async function pSave(a: Context) {
                 .update(Post)
                 .set({
                     refer_pid: sql<number>`LAST_INSERT_ROWID()`,
-                    show_time: [1, 2].includes(quote.thread_root_land) ? a.get('time') : Post.show_time, // 回复后顶贴的分区
+                    show_time: [1, 2, 4].includes(quote.thread_root_land) ? a.get('time') : Post.show_time, // 回复后顶贴的分区
                 })
                 .where(eq(Post.pid, quote.tid))
             ,
@@ -99,6 +101,7 @@ export async function pSave(a: Context) {
                 .insert(Post)
                 .values({
                     user: i.uid,
+                    call_land: land_comb,
                     show_time: a.get('time'),
                     root_land: land,
                     date_time: a.get('time'),

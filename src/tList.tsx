@@ -1,5 +1,5 @@
 import { Context } from "hono";
-import { and, count, desc, eq, getTableColumns, inArray, sql } from 'drizzle-orm';
+import { and, count, desc, eq, getTableColumns, inArray } from 'drizzle-orm';
 import { alias } from "drizzle-orm/sqlite-core";
 import { DB, Post, User } from "./base";
 import { Auth, Config, Pagination } from "./core";
@@ -11,14 +11,15 @@ export async function tList(a: Context) {
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const user = await Config.get<number>(a, 'user', true) ?? parseInt(a.req.query('user') ?? '0')
     const land = await Config.get<number>(a, 'land', true) ?? parseInt(a.req.query('land') ?? '0')
-    const dynamic_sort = !user && !land // 未指定用户和版块时 使用全局动态排序 
+    const land_comb = (!user && [0, 4].includes(land)) ? land : null; // 未指定用户和版块时 使用全局动态排序 
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const where = and(
         inArray(Post.attr, [0, 1]),
-        ...(dynamic_sort ?
-            [eq(Post.call_land, 0)]
-            :
+        ...(land_comb === null ?
             [user ? eq(Post.user, user) : undefined, eq(Post.root_land, land)]
+            :
+            [eq(Post.call_land, land_comb)]
+
         )
     )
     const total = (await DB(a)
@@ -45,11 +46,11 @@ export async function tList(a: Context) {
         .leftJoin(LastPost, eq(LastPost.pid, Post.refer_pid))
         .leftJoin(LastUser, eq(LastUser.uid, LastPost.user))
         .orderBy(desc(Post.attr),
-            ...(dynamic_sort ?
-                [desc(Post.call_land), desc(Post.show_time)]
-                :
+            ...(land_comb === null ?
                 [user ? desc(Post.user) : undefined, desc(Post.root_land), desc(Post.date_time)]
                     .filter(v => v !== undefined) // orderBy 需要自己过滤 undefined
+                :
+                [desc(Post.call_land), desc(Post.show_time)]
             ))
         .offset((page - 1) * page_size_t)
         .limit(page_size_t)
