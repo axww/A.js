@@ -39,7 +39,7 @@ app.use(async (a, next) => {
   a.set('user', await Config.get<number>(a, 'user', true));
   a.set('land', await Config.get<number>(a, 'land', true));
   a.set('hostname', new URL(a.req.url).hostname);
-  await next();
+  return await next();
 })
 app.use('/*', serveStatic({ root: './public/' }))
 
