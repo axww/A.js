@@ -58,7 +58,7 @@ export async function pOmit(a: Context) {
             DB(a)
                 .select({
                     pid: Post.pid,
-                    time: Post.date_time,
+                    date_time: Post.date_time,
                 })
                 .from(Post)
                 .where(and(
@@ -82,8 +82,8 @@ export async function pOmit(a: Context) {
                 .with(last)
                 .update(Post)
                 .set({
-                    refer_pid: sql<number>`(SELECT COALESCE(pid,0) FROM ${last})`,
-                    show_time: sql<number>`MIN((SELECT time FROM ${last}),${Post.show_time})`, // 如果有不需要更新show_time的分区
+                    refer_pid: sql<number>`(SELECT COALESCE((SELECT pid FROM ${last}), 0))`,
+                    show_time: sql<number>`MIN(COALESCE((SELECT date_time FROM ${last}),${Post.show_time}),${Post.show_time})`, // 考虑不需要更新show_time的分区?
                 })
                 .where(eq(Post.pid, -post.root_land)) // 更新Thread(tid=-root_land)
             ,
