@@ -11,7 +11,6 @@ export async function tList(a: Context) {
     const page = parseInt(a.req.query('page') ?? '0') || 1
     const user = await Config.get<number>(a, 'user', true) ?? parseInt(a.req.query('user') ?? '0')
     const land = await Config.get<number>(a, 'land', true) ?? parseInt(a.req.query('land') ?? '0')
-    if ([4].includes(land) && land != await Config.get<number>(a, 'land', true)) { return a.notFound() } // 特殊版块拦截器
     const land_comb = (!user && [0, 4].includes(land)) ? land : null; // 未指定用户和版块时 使用全局动态排序
     const page_size_t = await Config.get<number>(a, 'page_size_t') || 20
     const where = and(

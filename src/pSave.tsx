@@ -35,7 +35,7 @@ export async function pSave(a: Context) {
         if (!post.pid) { return a.text('403', 403) }
         return a.text('ok')
     } else if (eid > 0) { // 回复
-        if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (a.get('time') - i.last_post < 30) { return a.text('too_fast', 403) } // 防止频繁发帖
         if (i.grade == -1 && a.get('time') - i.last_post < 172800) { return a.text('ad_limit_2day', 403) } // 广告用户
         const Thread = alias(Post, 'Thread')
         const quote = (await DB(a)
@@ -92,7 +92,7 @@ export async function pSave(a: Context) {
         if (!res.pid) { return a.text('db execute failed', 403) }
         return a.text('ok') //! 返回tid/pid和posts数量
     } else { // 发帖
-        if (a.get('time') - i.last_post < 60) { return a.text('too_fast', 403) } // 防止频繁发帖
+        if (a.get('time') - i.last_post < 30) { return a.text('too_fast', 403) } // 防止频繁发帖
         if (i.grade == -1 && a.get('time') - i.last_post < 604800) { return a.text('ad_limit_7day', 403) } // 广告用户
         const [content, length] = await HTMLFilter(raw)
         if (length < 3) { return a.text('content_short', 422) }
