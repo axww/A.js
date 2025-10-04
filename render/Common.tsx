@@ -4,7 +4,8 @@ import { Props } from "../src/base";
 import { Config } from "../src/core";
 
 export async function Header(a: Context, z: Props) {
-
+  const keywords = z.keywords ?? await Config.get<string>(a, 'site_keywords', false)
+  const description = raw(z.description ?? await Config.get<string>(a, 'site_description', false))
   return html`
 <!DOCTYPE HTML>
 <html>
@@ -12,8 +13,8 @@ export async function Header(a: Context, z: Props) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${z.title}</title>
-  <meta name="keywords" content="${z.keywords ?? await Config.get<string>(a, 'site_keywords', false)}">
-  <meta name="description" content="${raw(z.description ?? await Config.get<string>(a, 'site_description', false))}">
+  ${keywords ? html`<meta name="keywords" content="${keywords}">` : ''}
+  ${keywords ? html`<meta name="description" content="${description}">` : ''}
   <meta name="robots" content="index, follow">
   <link rel="stylesheet" type="text/css" href="/a.css" />
   <script type="text/javascript" src="/a.js"></script>
