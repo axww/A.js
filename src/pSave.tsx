@@ -20,7 +20,7 @@ export async function pSave(a: Context) {
         const post = (await DB(a)
             .update(Post)
             .set({
-                call_land: sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${land_comb} ELSE ${Post.root_land} END`, // 回帖不能修改引用
+                call_land: sql<number>`CASE WHEN ${Post.call_land} > 0 THEN ${land_comb} ELSE ${Post.call_land} END`, // 回帖不能修改引用
                 root_land: sql<number>`CASE WHEN ${Post.root_land} > 0 THEN ${land} ELSE ${Post.root_land} END`, // 回帖不能修改引用
                 content: content,
             })
