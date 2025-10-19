@@ -11,13 +11,13 @@
     "@libsql/client": "^0.15.15",
     "drizzle-orm": "^0.44.6",
     "file-type": "^21.0.0",
-    "hono": "^4.9.10",
+    "hono": "^4.10.1",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {
     "drizzle-kit": "^0.31.5",
-    "npm-check-updates": "^19.0.0",
+    "npm-check-updates": "^19.1.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
