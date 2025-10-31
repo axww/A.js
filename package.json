@@ -7,17 +7,17 @@
     "www": "npx tsx src/app.tsx"
   },
   "dependencies": {
-    "@hono/node-server": "^1.19.5",
+    "@hono/node-server": "^1.19.6",
     "@libsql/client": "^0.15.15",
-    "drizzle-orm": "^0.44.6",
+    "drizzle-orm": "^0.44.7",
     "file-type": "^21.0.0",
-    "hono": "^4.10.1",
+    "hono": "^4.10.4",
     "htmlrewriter": "^0.0.13",
     "ts-md5": "^2.0.1"
   },
   "devDependencies": {
-    "drizzle-kit": "^0.31.5",
-    "npm-check-updates": "^19.1.1",
+    "drizzle-kit": "^0.31.6",
+    "npm-check-updates": "^19.1.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
